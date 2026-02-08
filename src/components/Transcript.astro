@@ -61,6 +61,9 @@ const sections = splitTranscriptSections(transcript);
 
 <section class="card transcript-root" data-transcript-root>
   <h2>Transcript</h2>
+  <p class="muted" style="font-size:13px;margin-bottom:12px;">
+    Tap any word to see it. <strong style="color:var(--primary-blue)">Blue words</strong> are today's vocabulary.
+  </p>
 
   {
     sections.map((section) => {
@@ -75,18 +78,37 @@ const sections = splitTranscriptSections(transcript);
           {paragraphs.map((paragraph) => (
             <p class="transcript-paragraph">
               {paragraph.split(/(\s+)/).map((token) => {
+                // Whitespace tokens stay as-is
+                if (/^\s+$/.test(token)) return token;
+
                 const normalized = normalizeWord(token);
+                // Skip very short tokens (punctuation-only, single chars)
+                if (normalized.length < 2) return token;
+
                 const vocabItem = vocabularyMap.get(normalized);
 
-                if (!vocabItem) return token;
+                if (vocabItem) {
+                  // Vocab word: highlighted + has definition data
+                  return (
+                    <button
+                      type="button"
+                      class="transcript-word vocab-token"
+                      data-word={token.replace(/[^a-zA-Z'-]/g, "")}
+                      data-vocab-word={vocabItem.word}
+                      data-vocab-definition={vocabItem.definition}
+                      data-vocab-example={vocabItem.example}
+                    >
+                      {token}
+                    </button>
+                  );
+                }
 
+                // Regular word: tappable but subtle
                 return (
                   <button
                     type="button"
-                    class="vocab-token"
-                    data-vocab-word={vocabItem.word}
-                    data-vocab-definition={vocabItem.definition}
-                    data-vocab-example={vocabItem.example}
+                    class="transcript-word"
+                    data-word={token.replace(/[^a-zA-Z'-]/g, "")}
                   >
                     {token}
                   </button>
@@ -106,15 +128,39 @@ const sections = splitTranscriptSections(transcript);
   const root = document.querySelector("[data-transcript-root]");
   if (root) {
     root.addEventListener("click", (event) => {
-      const target = event.target.closest("[data-vocab-word]");
+      const target = event.target.closest("[data-word]");
       if (!target) return;
+
+      // Get the clean word
+      const word = target.dataset.word;
+      if (!word || word.length < 2) return;
+
+      // Check if it's a vocab word (has definition data)
+      const isVocabWord = !!target.dataset.vocabWord;
+
+      // Extract sentence context from parent paragraph
+      const paragraph = target.closest(".transcript-paragraph");
+      let sentence = "";
+      if (paragraph) {
+        const paraText = paragraph.textContent || "";
+        // Split by sentence-ending punctuation
+        const sentences = paraText.match(/[^.!?]+[.!?]+/g) || [paraText];
+        const wordLower = word.toLowerCase();
+        sentence = (
+          sentences.find((s) =>
+            s.toLowerCase().includes(wordLower)
+          ) || paraText
+        ).trim();
+      }
 
       window.dispatchEvent(
         new CustomEvent("open-vocab-popup", {
           detail: {
-            word: target.dataset.vocabWord,
-            definition: target.dataset.vocabDefinition,
-            example: target.dataset.vocabExample,
+            word: target.dataset.vocabWord || word,
+            definition: target.dataset.vocabDefinition || "",
+            example: target.dataset.vocabExample || "",
+            sentence: sentence,
+            isVocabWord: isVocabWord,
           },
         }),
       );

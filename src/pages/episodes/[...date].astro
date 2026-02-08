@@ -86,7 +86,7 @@ const ldJson = {
       spotifyUrl={episode.urls?.spotify}
     />
     <Transcript transcript={episode.transcript} vocabulary={episode.vocabulary || []} />
-    <FlashcardDeck client:load cards={episode.vocabulary || []} />
+    <FlashcardDeck client:load episodeId={episode.id} />
     <QuizSection
       client:load
       questions={episode.questions || []}
