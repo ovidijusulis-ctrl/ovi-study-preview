@@ -1,0 +1,168 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AudioPlayer from "../../components/AudioPlayer.astro";
+import Transcript from "../../components/Transcript.astro";
+import FlashcardDeck from "../../components/FlashcardDeck.jsx";
+import QuizSection from "../../components/QuizSection.jsx";
+import FeedbackWidget from "../../components/FeedbackWidget.jsx";
+
+export async function getStaticPaths() {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const episodesDir = path.resolve("data/episodes");
+  const episodeFiles = fs.existsSync(episodesDir)
+    ? fs.readdirSync(episodesDir).filter((file) => file.endsWith(".json"))
+    : [];
+  const episodes = episodeFiles.map((file) => {
+    const raw = fs.readFileSync(path.join(episodesDir, file), "utf8");
+    return JSON.parse(raw);
+  });
+
+  return episodes.map((episode) => ({
+    params: { date: episode.date },
+    props: { episode },
+  }));
+}
+
+const { episode } = Astro.props;
+const pageTitle = `${episode.topic} | Ovi English School`;
+const base = import.meta.env.BASE_URL;
+const formattedDate = new Date(`${episode.date}T00:00:00`).toLocaleDateString("en-US", {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+});
+
+const pdfUrl = episode?.urls?.pdf || "";
+const ldJson = {
+  "@context": "https://schema.org/",
+  "@type": "PodcastEpisode",
+  name: episode.topic,
+  datePublished: episode.date,
+  educationalLevel:
+    episode.level === "intermediate"
+      ? "Intermediate (CEFR B1-B2)"
+      : "Beginner (CEFR A1-A2)",
+  learningResourceType: ["Transcript", "Quiz", "Flashcard", "PodcastEpisode"],
+  about: {
+    "@type": "Thing",
+    name: episode.topic,
+  },
+  isPartOf: {
+    "@type": "PodcastSeries",
+    name: "Ovi English School",
+    url: "https://ovidijusulis-ctrl.github.io/ovi-study-site",
+  },
+  author: {
+    "@type": "Organization",
+    name: "Ovi English School",
+    url: "https://ovidijusulis-ctrl.github.io/ovi-study-site",
+  },
+  url: `https://ovidijusulis-ctrl.github.io/ovi-study-site/episodes/${episode.date}`,
+};
+---
+
+<Layout title={pageTitle} description={episode.summary}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(ldJson)}></script>
+
+  <article>
+    <section class="card episode-header">
+      <a class="back-link" href={base}>Back to Archive</a>
+      <p class="muted">{formattedDate}</p>
+      <h1>{episode.topic}</h1>
+      <div class="episode-meta">
+        <span class="badge">
+          {episode.level === "intermediate" ? "Intermediate B1-B2" : "Beginner A1-A2"}
+        </span>
+        <span class="muted">Source: <a href={episode.source?.url}>{episode.source?.name}</a></span>
+      </div>
+      <p>{episode.summary}</p>
+    </section>
+
+    <AudioPlayer
+      filename={episode.audio?.filename}
+      youtubeUrl={episode.urls?.youtube}
+      spotifyUrl={episode.urls?.spotify}
+    />
+    <Transcript transcript={episode.transcript} vocabulary={episode.vocabulary || []} />
+    <FlashcardDeck client:load cards={episode.vocabulary || []} />
+    <QuizSection
+      client:load
+      questions={episode.questions || []}
+      exercises={episode.exercises || []}
+      vocabulary={episode.vocabulary || []}
+    />
+
+    <section class="card listen-again" id="listen-again">
+      <h2>Listen Again</h2>
+      <p>
+        You studied the vocabulary and completed the quiz. Now listen one more
+        time — you will understand much more!
+      </p>
+      {
+        episode.urls?.youtube ? (
+          <p>
+            <a class="button button-primary" href={episode.urls.youtube} target="_blank" rel="noreferrer">
+              Listen again on YouTube
+            </a>
+          </p>
+        ) : episode.audio?.filename ? (
+          <audio
+            controls
+            preload="metadata"
+            src={`${base}audio/${episode.audio.filename}`}
+            style="width: 100%;"
+          ></audio>
+        ) : null
+      }
+      <p class="muted" style="margin-top: 8px;">
+        Re-listening after studying vocabulary helps you remember the new words better.
+      </p>
+    </section>
+
+    <FeedbackWidget client:load episodeId={episode.id} />
+
+    <section class="card">
+      <h2>Resources</h2>
+      <ul class="resource-list">
+        {
+          episode?.urls?.youtube ? (
+            <li>
+              <a href={episode.urls.youtube} target="_blank" rel="noreferrer">
+                Listen on YouTube
+              </a>
+            </li>
+          ) : (
+            <li class="muted">YouTube link not available</li>
+          )
+        }
+        {
+          pdfUrl ? (
+            <li>
+              <a href={pdfUrl} target="_blank" rel="noreferrer">
+                Download PDF Guide
+              </a>
+            </li>
+          ) : (
+            <li class="muted">PDF guide link not available in episode JSON</li>
+          )
+        }
+        <li>
+          <a href={`${base}feed.xml`}>Subscribe (RSS)</a>
+        </li>
+        {
+          episode?.urls?.notion ? (
+            <li>
+              <a href={episode.urls.notion} target="_blank" rel="noreferrer">
+                View Notion Page
+              </a>
+            </li>
+          ) : (
+            <li class="muted">Notion page link not available</li>
+          )
+        }
+      </ul>
+    </section>
+  </article>
+</Layout>

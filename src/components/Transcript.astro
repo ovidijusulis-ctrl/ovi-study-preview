@@ -1,0 +1,123 @@
+---
+import VocabPopup from "./VocabPopup.jsx";
+
+const { transcript = "", vocabulary = [] } = Astro.props;
+
+const SECTION_MARKERS = [
+  "OPENING",
+  "VOCABULARY",
+  "NEWS STORY",
+  "REVIEW",
+  "PRACTICE",
+  "CLOSING",
+];
+
+function normalizeWord(value) {
+  return String(value).toLowerCase().replace(/[^a-z']/g, "");
+}
+
+function splitTranscriptSections(text) {
+  const sections = [];
+  const markerRegex = /\[(OPENING|VOCABULARY|NEWS STORY|REVIEW|PRACTICE|CLOSING)\]/g;
+  let match;
+  let lastIndex = 0;
+  let currentName = null;
+
+  while ((match = markerRegex.exec(text)) !== null) {
+    if (currentName !== null) {
+      sections.push({
+        name: currentName,
+        content: text.slice(lastIndex, match.index).trim(),
+      });
+    }
+    currentName = match[1];
+    lastIndex = markerRegex.lastIndex;
+  }
+
+  if (currentName !== null) {
+    sections.push({
+      name: currentName,
+      content: text.slice(lastIndex).trim(),
+    });
+  }
+
+  if (sections.length === 0 && text.trim()) {
+    sections.push({ name: "TRANSCRIPT", content: text.trim() });
+  }
+
+  const order = new Map(SECTION_MARKERS.map((name, index) => [name, index]));
+  return sections.sort((a, b) => {
+    const aOrder = order.has(a.name) ? order.get(a.name) : 999;
+    const bOrder = order.has(b.name) ? order.get(b.name) : 999;
+    return aOrder - bOrder;
+  });
+}
+
+const vocabularyMap = new Map(
+  (vocabulary || []).map((item) => [normalizeWord(item.word), item]),
+);
+const sections = splitTranscriptSections(transcript);
+---
+
+<section class="card transcript-root" data-transcript-root>
+  <h2>Transcript</h2>
+
+  {
+    sections.map((section) => {
+      const paragraphs = section.content
+        .split(/\n{2,}/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean);
+
+      return (
+        <div class="transcript-section">
+          <h3 class="transcript-section-title">{section.name}</h3>
+          {paragraphs.map((paragraph) => (
+            <p class="transcript-paragraph">
+              {paragraph.split(/(\s+)/).map((token) => {
+                const normalized = normalizeWord(token);
+                const vocabItem = vocabularyMap.get(normalized);
+
+                if (!vocabItem) return token;
+
+                return (
+                  <button
+                    type="button"
+                    class="vocab-token"
+                    data-vocab-word={vocabItem.word}
+                    data-vocab-definition={vocabItem.definition}
+                    data-vocab-example={vocabItem.example}
+                  >
+                    {token}
+                  </button>
+                );
+              })}
+            </p>
+          ))}
+        </div>
+      );
+    })
+  }
+
+  <VocabPopup client:load />
+</section>
+
+<script is:inline>
+  const root = document.querySelector("[data-transcript-root]");
+  if (root) {
+    root.addEventListener("click", (event) => {
+      const target = event.target.closest("[data-vocab-word]");
+      if (!target) return;
+
+      window.dispatchEvent(
+        new CustomEvent("open-vocab-popup", {
+          detail: {
+            word: target.dataset.vocabWord,
+            definition: target.dataset.vocabDefinition,
+            example: target.dataset.vocabExample,
+          },
+        }),
+      );
+    });
+  }
+</script>
