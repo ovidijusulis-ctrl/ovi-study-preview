@@ -16,6 +16,9 @@ const episodes = episodeFiles
   })
   .sort((a, b) => String(b.date).localeCompare(String(a.date)));
 
+// Collect all unique categories
+const allCategories = [...new Set(episodes.map((ep) => ep.category).filter(Boolean))].sort();
+
 function formatDate(dateString) {
   const date = new Date(`${dateString}T00:00:00`);
   return date.toLocaleDateString("en-US", {
@@ -24,6 +27,19 @@ function formatDate(dateString) {
     day: "numeric",
     year: "numeric",
   });
+}
+
+const categoryColors = {
+  global: "#6c8cff",
+  entertainment: "#c084fc",
+  tech: "#22d3ee",
+  sports: "#4ade80",
+  science: "#facc15",
+  lifestyle: "#fb923c",
+};
+
+function getCategoryColor(cat) {
+  return categoryColors[cat] || "#8b8fa3";
 }
 ---
 
@@ -34,12 +50,27 @@ function formatDate(dateString) {
       Learn English with real stories. Choose an episode to open the full lesson with audio,
       transcript, flashcards, and quiz.
     </p>
+
+    {allCategories.length > 0 && (
+      <div class="category-filter" id="categoryFilter">
+        <button class="filter-badge active" data-category="all">All</button>
+        {allCategories.map((cat) => (
+          <button
+            class="filter-badge"
+            data-category={cat}
+            style={`--cat-color: ${getCategoryColor(cat)}`}
+          >
+            {cat.charAt(0).toUpperCase() + cat.slice(1)}
+          </button>
+        ))}
+      </div>
+    )}
   </section>
 
-  <section class="episode-list">
+  <section class="episode-list" id="episodeList">
     {
       episodes.map((episode) => (
-        <article class="card episode-card">
+        <article class="card episode-card" data-category={episode.category || ""}>
           <p class="muted">{formatDate(episode.date)}</p>
           <h2>
             <a href={`${base}episodes/${episode.date}`}>{episode.topic}</a>
@@ -48,6 +79,14 @@ function formatDate(dateString) {
             <span class="badge">
               {episode.level === "intermediate" ? "Intermediate B1-B2" : "Beginner A1-A2"}
             </span>
+            {episode.category && (
+              <span
+                class="badge category-badge"
+                style={`background: ${getCategoryColor(episode.category)}22; color: ${getCategoryColor(episode.category)}`}
+              >
+                {episode.category.charAt(0).toUpperCase() + episode.category.slice(1)}
+              </span>
+            )}
             <span class="muted">{(episode.vocabulary || []).length} words</span>
           </div>
           <p class="episode-summary">{episode.summary}</p>
@@ -59,3 +98,64 @@ function formatDate(dateString) {
     }
   </section>
 </Layout>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const filterContainer = document.getElementById("categoryFilter");
+    if (!filterContainer) return;
+
+    const buttons = filterContainer.querySelectorAll(".filter-badge");
+    const cards = document.querySelectorAll(".episode-card");
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        buttons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        const cat = btn.dataset.category;
+        cards.forEach((card) => {
+          if (cat === "all" || card.dataset.category === cat) {
+            card.style.display = "";
+          } else {
+            card.style.display = "none";
+          }
+        });
+      });
+    });
+  });
+</script>
+
+<style>
+  .category-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .filter-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--border, #333);
+    background: transparent;
+    color: var(--text-muted, #999);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-badge:hover {
+    border-color: var(--cat-color, var(--primary, #6c8cff));
+    color: var(--cat-color, var(--primary, #6c8cff));
+  }
+  .filter-badge.active {
+    background: var(--cat-color, var(--primary, #6c8cff));
+    color: #fff;
+    border-color: var(--cat-color, var(--primary, #6c8cff));
+  }
+  .category-badge {
+    border-radius: 10px;
+    font-size: 12px;
+    padding: 2px 8px;
+  }
+</style>
