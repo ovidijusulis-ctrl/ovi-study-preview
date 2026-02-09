@@ -87,7 +87,7 @@ function getCategoryColor(cat) {
                 {episode.category.charAt(0).toUpperCase() + episode.category.slice(1)}
               </span>
             )}
-            <span class="muted">{(episode.vocabulary || []).length} words</span>
+            <span class="muted">{episode.questions?.length || 0} questions</span>
           </div>
           <p class="episode-summary">{episode.summary}</p>
           <a class="button button-primary" href={`${base}episodes/${episode.date}`}>

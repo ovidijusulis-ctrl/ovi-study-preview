@@ -3,9 +3,10 @@
  * Used by VocabPopup and FlashcardDeck to share state across islands.
  * Cards persist in localStorage keyed by episode ID.
  *
- * Card shape: { word, sentence, definition, phonetic, partOfSpeech }
+ * Card shape: { word, sentence, definition, phonetic, partOfSpeech, lastReviewAt?, intervalHours?, nextReviewAt? }
  */
 import { signal } from "@preact/signals";
+import { computeNextReviewAt, nextIntervalHours, isDueForReview, getDueCards } from "../utils/spaced-repetition.js";
 
 const STORAGE_KEY = "ovi-deck-";
 const MAX_CARDS = 10;
@@ -59,6 +60,35 @@ export function isInDeck(word) {
   );
 }
 
+/**
+ * Grade a card and update its review schedule.
+ * @param {string} word - The word to grade
+ * @param {string} grade - "again", "hard", "good", or "easy"
+ */
+export function gradeCard(word, grade) {
+  const cardIndex = deck.value.findIndex((c) => c.word === word);
+  if (cardIndex === -1) return;
+
+  const card = deck.value[cardIndex];
+  const now = new Date().toISOString();
+  const intervalHours = nextIntervalHours(card.intervalHours || 8, grade);
+  const nextReviewAt = computeNextReviewAt(now, card.intervalHours || 8, grade);
+
+  const updated = {
+    ...card,
+    lastReviewAt: now,
+    intervalHours,
+    nextReviewAt,
+  };
+
+  deck.value = [
+    ...deck.value.slice(0, cardIndex),
+    updated,
+    ...deck.value.slice(cardIndex + 1),
+  ];
+  persist();
+}
+
 /** Save current deck to localStorage */
 function persist() {
   if (!currentEpisodeId) return;
@@ -71,3 +101,6 @@ function persist() {
     // localStorage full or unavailable — ignore
   }
 }
+
+// Re-export spaced repetition utilities for use in components
+export { isDueForReview, getDueCards };

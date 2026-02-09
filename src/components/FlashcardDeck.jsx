@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { deck, loadDeck, removeCard } from "../stores/deckStore.js";
+import { deck, loadDeck, removeCard, gradeCard, isDueForReview } from "../stores/deckStore.js";
 
 /**
  * Speak text using the Web Speech API at a learner-friendly pace.
@@ -21,6 +21,7 @@ export default function FlashcardDeck({ episodeId = "" }) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [reviewMode, setReviewMode] = useState(false);
 
   // Load saved deck from localStorage on mount
   useEffect(() => {
@@ -80,6 +81,8 @@ export default function FlashcardDeck({ episodeId = "" }) {
   }
 
   const current = cards[index];
+  const dueCount = cards.filter((c) => isDueForReview(c)).length;
+
   const onPrev = () => {
     setIndex((value) => Math.max(0, value - 1));
     setFlipped(false);
@@ -108,6 +111,13 @@ export default function FlashcardDeck({ episodeId = "" }) {
           ({cards.length}/10 cards)
         </span>
       </p>
+
+      {dueCount > 0 && (
+        <div style={{ background: "rgba(37,99,235,0.08)", borderRadius: "6px", padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+          <span style={{ fontSize: "14px", color: "var(--primary-blue)" }}>{dueCount} card{dueCount !== 1 ? "s" : ""} due for review</span>
+          <button class="button button-primary" type="button" style={{ padding: "4px 12px", minHeight: "32px", fontSize: "13px" }} onClick={() => setReviewMode(true)}>Review Now</button>
+        </div>
+      )}
 
       <div class="flashcard-frame">
         <div
@@ -178,30 +188,67 @@ export default function FlashcardDeck({ episodeId = "" }) {
       </div>
 
       <div class="flashcard-nav">
-        <button
-          class="button button-secondary"
-          type="button"
-          onClick={onPrev}
-          disabled={index === 0}
-        >
-          Prev
-        </button>
-        <button
-          class="flashcard-remove-btn"
-          type="button"
-          onClick={onRemove}
-          aria-label={`Remove ${current.word} from deck`}
-        >
-          Remove
-        </button>
-        <button
-          class="button button-secondary"
-          type="button"
-          onClick={onNext}
-          disabled={index === cards.length - 1}
-        >
-          Next
-        </button>
+        {reviewMode && flipped ? (
+          <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap" }}>
+            {["again", "hard", "good", "easy"].map((grade) => (
+              <button
+                key={grade}
+                class="button button-secondary"
+                type="button"
+                style={{
+                  padding: "6px 14px",
+                  minHeight: "36px",
+                  fontSize: "14px",
+                  borderColor: grade === "again" ? "var(--error-red)" : grade === "easy" ? "var(--success-green)" : "var(--border-light)",
+                  color: grade === "again" ? "var(--error-red)" : grade === "easy" ? "var(--success-green)" : "var(--text-dark)",
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  gradeCard(current.word, grade);
+                  // Move to next due card or exit review
+                  const remaining = cards.filter((c, i) => i !== index && isDueForReview(c));
+                  if (remaining.length > 0) {
+                    const nextIdx = cards.findIndex((c) => c.word === remaining[0].word);
+                    setIndex(nextIdx);
+                    setFlipped(false);
+                  } else {
+                    setReviewMode(false);
+                    setFlipped(false);
+                  }
+                }}
+              >
+                {grade.charAt(0).toUpperCase() + grade.slice(1)}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <>
+            <button
+              class="button button-secondary"
+              type="button"
+              onClick={onPrev}
+              disabled={index === 0}
+            >
+              Prev
+            </button>
+            <button
+              class="flashcard-remove-btn"
+              type="button"
+              onClick={onRemove}
+              aria-label={`Remove ${current.word} from deck`}
+            >
+              Remove
+            </button>
+            <button
+              class="button button-secondary"
+              type="button"
+              onClick={onNext}
+              disabled={index === cards.length - 1}
+            >
+              Next
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
