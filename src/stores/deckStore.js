@@ -9,7 +9,7 @@ import { signal } from "@preact/signals";
 import { computeNextReviewAt, nextIntervalHours, isDueForReview, getDueCards } from "../utils/spaced-repetition.js";
 
 const STORAGE_KEY = "ovi-deck-";
-const MAX_CARDS = 10;
+const MAX_CARDS = 20;
 
 /** The current deck of saved flashcards */
 export const deck = signal([]);

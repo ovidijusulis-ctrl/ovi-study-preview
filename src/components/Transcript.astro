@@ -1,7 +1,8 @@
 ---
 import VocabPopup from "./VocabPopup.jsx";
+import InlineQuestion from "./InlineQuestion.jsx";
 
-const { transcript = "" } = Astro.props;
+const { transcript = "", paragraphQuestions = [] } = Astro.props;
 
 const SECTION_MARKERS = [
   "OPENING",
@@ -49,6 +50,12 @@ function splitTranscriptSections(text) {
   });
 }
 
+// Build a lookup: paragraphIndex -> question data
+const questionMap = new Map();
+for (const q of paragraphQuestions) {
+  questionMap.set(q.paragraphIndex, q);
+}
+
 const sections = splitTranscriptSections(transcript);
 ---
 
@@ -65,28 +72,40 @@ const sections = splitTranscriptSections(transcript);
         .map((paragraph) => paragraph.trim())
         .filter(Boolean);
 
+      const isNewsStory = section.name === "NEWS STORY";
+
       return (
         <div class="transcript-section">
           <h3 class="transcript-section-title">{section.name}</h3>
-          {paragraphs.map((paragraph) => (
-            <p class="transcript-paragraph">
-              {paragraph.split(/(\s+)/).map((token) => {
-                if (/^\s+$/.test(token)) return token;
+          {paragraphs.map((paragraph, pIdx) => (
+            <>
+              <p class="transcript-paragraph">
+                {paragraph.split(/(\s+)/).map((token) => {
+                  if (/^\s+$/.test(token)) return token;
 
-                const cleaned = token.replace(/[^a-zA-Z'-]/g, "");
-                if (cleaned.length < 2) return token;
+                  const cleaned = token.replace(/[^a-zA-Z'-]/g, "");
+                  if (cleaned.length < 2) return token;
 
-                return (
-                  <button
-                    type="button"
-                    class="transcript-word"
-                    data-word={cleaned}
-                  >
-                    {token}
-                  </button>
-                );
-              })}
-            </p>
+                  return (
+                    <button
+                      type="button"
+                      class="transcript-word"
+                      data-word={cleaned}
+                    >
+                      {token}
+                    </button>
+                  );
+                })}
+              </p>
+              {isNewsStory && questionMap.has(pIdx) && (
+                <InlineQuestion
+                  client:load
+                  question={questionMap.get(pIdx).question}
+                  answer={questionMap.get(pIdx).answer}
+                  hint={questionMap.get(pIdx).hint}
+                />
+              )}
+            </>
           ))}
         </div>
       );

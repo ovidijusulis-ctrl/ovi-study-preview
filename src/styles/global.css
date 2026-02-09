@@ -611,6 +611,66 @@ a:focus-visible {
   transform: scale(1.15);
 }
 
+/* ── Inline Comprehension Questions ── */
+
+.inline-question {
+  display: flex;
+  gap: 10px;
+  background: rgba(37, 99, 235, 0.04);
+  border-left: 3px solid var(--primary-blue);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 14px;
+  margin: 14px 0;
+}
+
+.inline-question-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary-blue);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inline-question-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.inline-question-text {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.inline-question-reveal {
+  background: none;
+  border: 1px dashed var(--primary-blue);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+  color: var(--primary-blue);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.inline-question-reveal:hover {
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.inline-question-answer {
+  background: rgba(22, 163, 74, 0.06);
+  border-radius: 6px;
+  padding: 10px 12px;
+  animation: fade-in 0.2s ease-out;
+}
+
 /* ══ Responsive ══ */
 
 /* Tablet and up */

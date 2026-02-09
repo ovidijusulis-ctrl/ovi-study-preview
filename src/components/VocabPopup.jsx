@@ -106,7 +106,7 @@ export default function VocabPopup() {
   if (!entry) return null;
 
   const alreadyInDeck = isInDeck(entry.word);
-  const deckFull = deck.value.length >= 10;
+  const deckFull = deck.value.length >= 20;
 
   const definition = lookup?.definition || "";
   const phonetic = lookup?.phonetic || "";
@@ -203,11 +203,11 @@ export default function VocabPopup() {
             </button>
           ) : deckFull ? (
             <button class="button button-secondary" type="button" disabled style={{ opacity: 0.5 }}>
-              Deck full (10/10)
+              Deck full (20/20)
             </button>
           ) : (
             <button class="button button-primary" type="button" onClick={handleAdd}>
-              + Add to Flashcards ({deck.value.length}/10)
+              + Add to Flashcards ({deck.value.length}/20)
             </button>
           )}
 

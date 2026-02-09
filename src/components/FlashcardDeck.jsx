@@ -74,7 +74,7 @@ export default function FlashcardDeck({ episodeId = "" }) {
         <p class="flashcard-empty">
           Tap any word in the transcript above to add it to your flashcard deck.
           <br />
-          <span style={{ fontSize: "13px" }}>You can save up to 10 cards.</span>
+          <span style={{ fontSize: "13px" }}>You can save up to 20 cards.</span>
         </p>
       </div>
     );
@@ -108,7 +108,7 @@ export default function FlashcardDeck({ episodeId = "" }) {
       <p class="flashcard-counter">
         {index + 1} of {cards.length}
         <span style={{ color: "var(--text-light)", marginLeft: "8px", fontSize: "13px" }}>
-          ({cards.length}/10 cards)
+          ({cards.length}/20 cards)
         </span>
       </p>
 
