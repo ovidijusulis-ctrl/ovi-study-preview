@@ -85,19 +85,17 @@ const ldJson = {
       youtubeUrl={episode.urls?.youtube}
       spotifyUrl={episode.urls?.spotify}
     />
-    <Transcript transcript={episode.transcript} vocabulary={episode.vocabulary || []} />
+    <Transcript transcript={episode.transcript} />
     <FlashcardDeck client:load episodeId={episode.id} />
     <QuizSection
       client:load
       questions={episode.questions || []}
-      exercises={episode.exercises || []}
-      vocabulary={episode.vocabulary || []}
     />
 
     <section class="card listen-again" id="listen-again">
       <h2>Listen Again</h2>
       <p>
-        You studied the vocabulary and completed the quiz. Now listen one more
+        You read the story and completed the quiz. Now listen one more
         time — you will understand much more!
       </p>
       {
@@ -117,7 +115,7 @@ const ldJson = {
         ) : null
       }
       <p class="muted" style="margin-top: 8px;">
-        Re-listening after studying vocabulary helps you remember the new words better.
+        Re-listening after studying helps you remember new words better.
       </p>
     </section>
 
@@ -144,24 +142,22 @@ const ldJson = {
                 Download PDF Guide
               </a>
             </li>
-          ) : (
-            <li class="muted">PDF guide link not available in episode JSON</li>
-          )
+          ) : null
         }
         <li>
           <a href={`${base}feed.xml`}>Subscribe (RSS)</a>
         </li>
-        {
-          episode?.urls?.notion ? (
-            <li>
-              <a href={episode.urls.notion} target="_blank" rel="noreferrer">
-                View Notion Page
-              </a>
-            </li>
-          ) : (
-            <li class="muted">Notion page link not available</li>
-          )
-        }
+        <li>
+          <a
+            href={`https://ovidijusulis-ctrl.github.io/ovi-study-site/episodes/${episode.date}`}
+            onclick="if(navigator.share){event.preventDefault();navigator.share({title:document.title,url:window.location.href})}"
+          >
+            Share this lesson
+          </a>
+        </li>
+        <li>
+          <a href="mailto:English.ovi@gmail.com">Contact us (English.ovi@gmail.com)</a>
+        </li>
       </ul>
     </section>
   </article>

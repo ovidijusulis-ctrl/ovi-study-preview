@@ -15,30 +15,29 @@ function normalize(text) {
 
 function scoreMessage(score, total) {
   if (score === total) return "Perfect. You're a superstar.";
-  if (score >= 6) return "Excellent work. You're making great progress.";
-  if (score >= 4) return "Good effort. Keep practicing.";
+  if (score >= 4) return "Excellent work. You're making great progress.";
+  if (score >= 3) return "Good effort. Keep practicing.";
   return "You're learning. Try again tomorrow.";
 }
 
-export default function QuizSection({ questions = [], exercises = [], vocabulary = [] }) {
+export default function QuizSection({ questions = [] }) {
   const mcqItems = useMemo(() => {
     const fallbackDistractors = [
       "It happened in a different city.",
       "The story does not say that.",
       "It was never mentioned in the lesson.",
       "That answer is not in today's episode.",
+      "This was not part of the story.",
     ];
 
-    return questions.slice(0, 3).map((item, index, list) => {
+    return questions.slice(0, 5).map((item, index, list) => {
+      // Use other correct answers as distractors first
       const otherAnswers = list
         .filter((_, idx) => idx !== index)
         .map((value) => value.answer)
         .filter(Boolean);
-      const vocabDistractors = vocabulary
-        .map((entry) => `${entry.word}: ${entry.definition}`)
-        .slice(0, 3);
 
-      const distractorPool = [...otherAnswers, ...vocabDistractors, ...fallbackDistractors].filter(
+      const distractorPool = [...otherAnswers, ...fallbackDistractors].filter(
         (value) => normalize(value) !== normalize(item.answer),
       );
 
@@ -55,36 +54,14 @@ export default function QuizSection({ questions = [], exercises = [], vocabulary
       }
 
       return {
-        type: "mcq",
         question: item.question,
         answer: item.answer,
         options: shuffle([item.answer, ...distractors]),
       };
     });
-  }, [questions, vocabulary]);
+  }, [questions]);
 
-  const clozeItems = useMemo(() => {
-    return exercises.slice(0, 5).map((item) => {
-      const distractorPool = vocabulary
-        .map((entry) => entry.word)
-        .filter((word) => normalize(word) !== normalize(item.answer));
-
-      const distractors = shuffle(distractorPool).slice(0, 3);
-      const fallbackWords = ["journey", "adventure", "discover", "explore"];
-      while (distractors.length < 3) {
-        distractors.push(fallbackWords[distractors.length % fallbackWords.length]);
-      }
-
-      return {
-        ...item,
-        type: "cloze",
-        options: shuffle([item.answer, ...distractors]),
-      };
-    });
-  }, [exercises, vocabulary]);
-
-  const allItems = [...mcqItems, ...clozeItems];
-  const total = allItems.length;
+  const total = mcqItems.length;
 
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
@@ -101,10 +78,10 @@ export default function QuizSection({ questions = [], exercises = [], vocabulary
     );
   }
 
-  const item = allItems[current];
+  const item = mcqItems[current];
   const isFinished = current >= total;
 
-  const onMcqSelect = (option) => {
+  const onSelect = (option) => {
     if (answered) return;
 
     const correct = normalize(option) === normalize(item.answer);
@@ -119,20 +96,6 @@ export default function QuizSection({ questions = [], exercises = [], vocabulary
       });
     }
     setAnswered(true);
-  };
-
-  const onClozeSelect = (option) => {
-    const correct = normalize(option) === normalize(item.answer);
-    setSelected(option);
-    if (correct) {
-      if (!answered) {
-        setScore((value) => value + 1);
-      }
-      setFeedback({ type: "success", text: "Correct." });
-      setAnswered(true);
-    } else {
-      setFeedback({ type: "error", text: "Incorrect. Try again." });
-    }
   };
 
   const next = () => {
@@ -182,41 +145,21 @@ export default function QuizSection({ questions = [], exercises = [], vocabulary
       <p class="progress">
         Question {current + 1} of {total}
       </p>
-      <p>{item.question || `Exercise ${item.number}`}</p>
+      <p>{item.question}</p>
 
-      {item.type === "mcq" ? (
-        <div class="option-list">
-          {item.options.map((option) => (
-            <button
-              key={option}
-              class="button button-secondary option-button"
-              type="button"
-              onClick={() => onMcqSelect(option)}
-              disabled={answered}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <>
-          <p>{item.sentence}</p>
-          <p class="muted">Hint: {item.hint}</p>
-          <div class="chip-list">
-            {item.options.map((option) => (
-              <button
-                key={option}
-                type="button"
-                class={`chip ${selected === option ? "selected" : ""}`}
-                onClick={() => onClozeSelect(option)}
-                disabled={answered}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+      <div class="option-list">
+        {item.options.map((option) => (
+          <button
+            key={option}
+            class="button button-secondary option-button"
+            type="button"
+            onClick={() => onSelect(option)}
+            disabled={answered}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
 
       {feedback ? (
         <div class={`feedback ${feedback.type}`}>{feedback.text}</div>

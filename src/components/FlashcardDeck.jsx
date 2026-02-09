@@ -1,9 +1,26 @@
 import { useEffect, useState } from "preact/hooks";
 import { deck, loadDeck, removeCard } from "../stores/deckStore.js";
 
+/**
+ * Speak text using the Web Speech API at a learner-friendly pace.
+ */
+function speak(text, onEnd) {
+  if (!window.speechSynthesis || !text) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.85;
+  utterance.lang = "en-US";
+  if (onEnd) {
+    utterance.onend = onEnd;
+    utterance.onerror = onEnd;
+  }
+  window.speechSynthesis.speak(utterance);
+}
+
 export default function FlashcardDeck({ episodeId = "" }) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
 
   // Load saved deck from localStorage on mount
   useEffect(() => {
@@ -37,12 +54,23 @@ export default function FlashcardDeck({ episodeId = "" }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [cards.length]);
 
+  // Cancel speech on unmount
+  useEffect(() => {
+    return () => window.speechSynthesis?.cancel();
+  }, []);
+
+  const handleSpeak = (text, e) => {
+    if (e) e.stopPropagation();
+    setSpeaking(true);
+    speak(text, () => setSpeaking(false));
+  };
+
   // Empty state
   if (cards.length === 0) {
     return (
       <div class="card">
         <h2>Your Flashcards</h2>
-        <p class="muted" style={{ textAlign: "center", padding: "24px 0" }}>
+        <p class="flashcard-empty">
           Tap any word in the transcript above to add it to your flashcard deck.
           <br />
           <span style={{ fontSize: "13px" }}>You can save up to 10 cards.</span>
@@ -55,13 +83,19 @@ export default function FlashcardDeck({ episodeId = "" }) {
   const onPrev = () => {
     setIndex((value) => Math.max(0, value - 1));
     setFlipped(false);
+    window.speechSynthesis?.cancel();
+    setSpeaking(false);
   };
   const onNext = () => {
     setIndex((value) => Math.min(cards.length - 1, value + 1));
     setFlipped(false);
+    window.speechSynthesis?.cancel();
+    setSpeaking(false);
   };
   const onRemove = (e) => {
     e.stopPropagation();
+    window.speechSynthesis?.cancel();
+    setSpeaking(false);
     removeCard(current.word);
   };
 
@@ -76,44 +110,71 @@ export default function FlashcardDeck({ episodeId = "" }) {
       </p>
 
       <div class="flashcard-frame">
-        <button
+        <div
           class={`flashcard ${flipped ? "is-flipped" : ""}`}
-          type="button"
-          onClick={() => setFlipped((value) => !value)}
+          role="button"
+          tabIndex={0}
+          onClick={(e) => {
+            // Only flip if they didn't click the voice button
+            if (!e.target.closest(".voice-btn")) {
+              setFlipped((value) => !value);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setFlipped((value) => !value);
+            }
+          }}
           aria-label="Flip flashcard"
         >
-          <span class="flashcard-face flashcard-front">
+          {/* Front: word + phonetic + voice */}
+          <div class="flashcard-face flashcard-front">
             <span class="flashcard-word">{current.word}</span>
-            {current.isVocabWord && (
-              <span
-                style={{
-                  fontSize: "11px",
-                  color: "var(--primary-blue)",
-                  background: "rgba(37,99,235,0.08)",
-                  padding: "2px 8px",
-                  borderRadius: "8px",
-                  marginTop: "4px",
-                }}
-              >
-                Today's vocabulary
-              </span>
+            {current.phonetic && (
+              <span class="flashcard-phonetic">{current.phonetic}</span>
             )}
-            <span class="muted">Tap to flip</span>
-          </span>
+            <button
+              class={`voice-btn ${speaking && !flipped ? "is-speaking" : ""}`}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSpeak(current.word, e);
+              }}
+              aria-label={`Listen to ${current.word}`}
+              title="Listen"
+            >
+              &#x1f50a;
+            </button>
+            <span class="muted" style={{ marginTop: "8px" }}>Tap to flip</span>
+          </div>
 
-          <span class="flashcard-face flashcard-back">
-            {current.definition && (
+          {/* Back: definition + sentence + voice */}
+          <div class="flashcard-face flashcard-back">
+            {current.definition ? (
               <span class="flashcard-definition">{current.definition}</span>
+            ) : (
+              <span class="flashcard-definition muted">No definition available</span>
             )}
             {current.sentence && (
               <span class="flashcard-example">"{current.sentence}"</span>
             )}
-            {!current.definition && !current.sentence && (
-              <span class="flashcard-definition muted">No definition available</span>
-            )}
-            <span class="muted">Tap to flip</span>
-          </span>
-        </button>
+            <button
+              class={`voice-btn ${speaking && flipped ? "is-speaking" : ""}`}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSpeak(current.sentence || current.word, e);
+              }}
+              aria-label="Listen to sentence"
+              title="Listen to sentence"
+              style={{ marginTop: "8px" }}
+            >
+              &#x1f50a;
+            </button>
+            <span class="muted" style={{ marginTop: "4px" }}>Tap to flip</span>
+          </div>
+        </div>
       </div>
 
       <div class="flashcard-nav">

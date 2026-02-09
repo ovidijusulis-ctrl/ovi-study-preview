@@ -2,6 +2,8 @@
  * Shared flashcard deck store using Preact Signals.
  * Used by VocabPopup and FlashcardDeck to share state across islands.
  * Cards persist in localStorage keyed by episode ID.
+ *
+ * Card shape: { word, sentence, definition, phonetic, partOfSpeech }
  */
 import { signal } from "@preact/signals";
 
@@ -29,7 +31,6 @@ export function loadDeck(episodeId) {
 
 /**
  * Add a card to the deck. Returns true on success, false if full or duplicate.
- * Card shape: { word, sentence, definition, isVocabWord }
  */
 export function addCard(card) {
   if (deck.value.length >= MAX_CARDS) return false;
