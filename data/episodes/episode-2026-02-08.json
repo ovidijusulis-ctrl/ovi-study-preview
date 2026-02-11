@@ -151,5 +151,43 @@
       "study guide"
     ],
     "instagramCaption": "📚 Daily English Lesson\n\nToday's vocabulary:\n• weigh\n• player\n• double\n• learn\n• coach\n\n🎧 Full lesson in bio!\n\n#englishlearning #learnenglish #esl #vocabulary #englishteacher"
-  }
+  },
+  "paragraphQuestions": [
+    {
+      "paragraphIndex": 0,
+      "question": "How many tries did England score in the game?",
+      "answer": "England scored seven tries in the game.",
+      "hint": "Look near the beginning of this paragraph."
+    },
+    {
+      "paragraphIndex": 1,
+      "question": "What can the coach learn from France?",
+      "answer": "The coach can learn lessons to help the team get better.",
+      "hint": "Look near the beginning of this paragraph."
+    },
+    {
+      "paragraphIndex": 2,
+      "question": "What does the word thrash mean in the story?",
+      "answer": "Thrash means to win by a big difference in the score.",
+      "hint": "Look near the beginning of this paragraph."
+    },
+    {
+      "paragraphIndex": 3,
+      "question": "What is the main idea of this paragraph?",
+      "answer": "Matt Dawson thinks the coach can learn lessons from France.",
+      "hint": "Look near the beginning of this paragraph."
+    },
+    {
+      "paragraphIndex": 4,
+      "question": "What is the main idea of this paragraph?",
+      "answer": "In rugby, teams try to score more than the other team.",
+      "hint": "Look near the beginning of this paragraph."
+    },
+    {
+      "paragraphIndex": 5,
+      "question": "What is the main idea of this paragraph?",
+      "answer": "This kind of win shows England is strong now.",
+      "hint": "Look near the beginning of this paragraph."
+    }
+  ]
 }

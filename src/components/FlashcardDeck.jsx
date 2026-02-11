@@ -30,6 +30,7 @@ export default function FlashcardDeck({ episodeId = "" }) {
 
   // Subscribe to deck signal
   const cards = deck.value;
+  const dueCount = cards.filter((c) => isDueForReview(c)).length;
 
   // Keep index in bounds when cards change
   useEffect(() => {
@@ -60,6 +61,14 @@ export default function FlashcardDeck({ episodeId = "" }) {
     return () => window.speechSynthesis?.cancel();
   }, []);
 
+  // Exit review mode automatically when no cards are due
+  useEffect(() => {
+    if (reviewMode && dueCount === 0) {
+      setReviewMode(false);
+      setFlipped(false);
+    }
+  }, [reviewMode, dueCount]);
+
   const handleSpeak = (text, e) => {
     if (e) e.stopPropagation();
     setSpeaking(true);
@@ -81,7 +90,18 @@ export default function FlashcardDeck({ episodeId = "" }) {
   }
 
   const current = cards[index];
-  const dueCount = cards.filter((c) => isDueForReview(c)).length;
+  const startReview = () => {
+    const firstDueIndex = cards.findIndex((c) => isDueForReview(c));
+    if (firstDueIndex === -1) {
+      setReviewMode(false);
+      return;
+    }
+    setReviewMode(true);
+    setIndex(firstDueIndex);
+    setFlipped(false);
+    window.speechSynthesis?.cancel();
+    setSpeaking(false);
+  };
 
   const onPrev = () => {
     setIndex((value) => Math.max(0, value - 1));
@@ -115,7 +135,26 @@ export default function FlashcardDeck({ episodeId = "" }) {
       {dueCount > 0 && (
         <div style={{ background: "rgba(37,99,235,0.08)", borderRadius: "6px", padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <span style={{ fontSize: "14px", color: "var(--primary-blue)" }}>{dueCount} card{dueCount !== 1 ? "s" : ""} due for review</span>
-          <button class="button button-primary" type="button" style={{ padding: "4px 12px", minHeight: "32px", fontSize: "13px" }} onClick={() => setReviewMode(true)}>Review Now</button>
+          <button class="button button-primary" type="button" style={{ padding: "4px 12px", minHeight: "32px", fontSize: "13px" }} onClick={startReview}>Review Now</button>
+        </div>
+      )}
+
+      {reviewMode && (
+        <div style={{ background: "rgba(15,23,42,0.05)", border: "1px dashed var(--border-light)", borderRadius: "6px", padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", gap: "8px" }}>
+          <span style={{ fontSize: "13px", color: "var(--text-light)" }}>
+            Review mode active. Flip the card, then choose Again, Hard, Good, or Easy.
+          </span>
+          <button
+            class="button button-secondary"
+            type="button"
+            style={{ padding: "4px 10px", minHeight: "32px", fontSize: "13px" }}
+            onClick={() => {
+              setReviewMode(false);
+              setFlipped(false);
+            }}
+          >
+            Exit
+          </button>
         </div>
       )}
 
@@ -159,16 +198,21 @@ export default function FlashcardDeck({ episodeId = "" }) {
             <span class="muted" style={{ marginTop: "8px" }}>Tap to flip</span>
           </div>
 
-          {/* Back: definition + sentence + voice */}
+          {/* Back: context sentence first, then definition */}
           <div class="flashcard-face flashcard-back">
+            {current.sentence ? (
+              <div class="flashcard-context-box">
+                <span class="flashcard-context-label">Context from episode</span>
+                <span class="flashcard-example">"{current.sentence}"</span>
+              </div>
+            ) : null}
+
             {current.definition ? (
-              <span class="flashcard-definition">{current.definition}</span>
+              <span class="flashcard-definition">Meaning: {current.definition}</span>
             ) : (
               <span class="flashcard-definition muted">No definition available</span>
             )}
-            {current.sentence && (
-              <span class="flashcard-example">"{current.sentence}"</span>
-            )}
+
             <button
               class={`voice-btn ${speaking && flipped ? "is-speaking" : ""}`}
               type="button"
@@ -188,7 +232,8 @@ export default function FlashcardDeck({ episodeId = "" }) {
       </div>
 
       <div class="flashcard-nav">
-        {reviewMode && flipped ? (
+        {reviewMode ? (
+          flipped ? (
           <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap" }}>
             {["again", "hard", "good", "easy"].map((grade) => (
               <button
@@ -205,10 +250,10 @@ export default function FlashcardDeck({ episodeId = "" }) {
                 onClick={(e) => {
                   e.stopPropagation();
                   gradeCard(current.word, grade);
-                  // Move to next due card or exit review
-                  const remaining = cards.filter((c, i) => i !== index && isDueForReview(c));
-                  if (remaining.length > 0) {
-                    const nextIdx = cards.findIndex((c) => c.word === remaining[0].word);
+                  // Move to next due card (from updated deck) or exit review
+                  const updatedCards = deck.value;
+                  const nextIdx = updatedCards.findIndex((c) => isDueForReview(c));
+                  if (nextIdx !== -1) {
                     setIndex(nextIdx);
                     setFlipped(false);
                   } else {
@@ -221,6 +266,11 @@ export default function FlashcardDeck({ episodeId = "" }) {
               </button>
             ))}
           </div>
+          ) : (
+            <div style={{ width: "100%", textAlign: "center", fontSize: "13px", color: "var(--text-light)" }}>
+              Tap the card to flip and grade this review.
+            </div>
+          )
         ) : (
           <>
             <button

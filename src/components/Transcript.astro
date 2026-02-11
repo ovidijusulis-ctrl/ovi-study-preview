@@ -13,18 +13,31 @@ const SECTION_MARKERS = [
   "CLOSING",
 ];
 
+function normalizeSectionMarkers(text) {
+  let normalized = text;
+
+  for (const section of SECTION_MARKERS) {
+    const escaped = section.replace(/\s+/g, "\\s+");
+    const pattern = new RegExp(`^\\s*(?:\\[\\s*${escaped}\\s*\\]|${escaped})\\s*:?\\s*$`, "gmi");
+    normalized = normalized.replace(pattern, `[${section}]`);
+  }
+
+  return normalized;
+}
+
 function splitTranscriptSections(text) {
+  const normalized = normalizeSectionMarkers(text);
   const sections = [];
   const markerRegex = /\[(OPENING|VOCABULARY|NEWS STORY|REVIEW|PRACTICE|CLOSING)\]/g;
   let match;
   let lastIndex = 0;
   let currentName = null;
 
-  while ((match = markerRegex.exec(text)) !== null) {
+  while ((match = markerRegex.exec(normalized)) !== null) {
     if (currentName !== null) {
       sections.push({
         name: currentName,
-        content: text.slice(lastIndex, match.index).trim(),
+        content: normalized.slice(lastIndex, match.index).trim(),
       });
     }
     currentName = match[1];
@@ -34,12 +47,12 @@ function splitTranscriptSections(text) {
   if (currentName !== null) {
     sections.push({
       name: currentName,
-      content: text.slice(lastIndex).trim(),
+      content: normalized.slice(lastIndex).trim(),
     });
   }
 
-  if (sections.length === 0 && text.trim()) {
-    sections.push({ name: "TRANSCRIPT", content: text.trim() });
+  if (sections.length === 0 && normalized.trim()) {
+    sections.push({ name: "TRANSCRIPT", content: normalized.trim() });
   }
 
   const order = new Map(SECTION_MARKERS.map((name, index) => [name, index]));
@@ -57,56 +70,115 @@ for (const q of paragraphQuestions) {
 }
 
 const sections = splitTranscriptSections(transcript);
+const visibleSections = paragraphQuestions.length > 0
+  ? sections.filter((section) => !["VOCABULARY", "REVIEW", "PRACTICE"].includes(section.name))
+  : sections;
+let revealCounter = 0;
 ---
 
-<section class="card transcript-root" data-transcript-root>
+<section class="card transcript-root" data-transcript-root data-mode="study">
   <h2>Transcript</h2>
+  <div class="transcript-controls" data-transcript-controls>
+    <div class="transcript-mode-group" role="tablist" aria-label="Transcript mode">
+      <button
+        type="button"
+        class="transcript-mode-btn is-active"
+        data-mode-btn="study"
+        role="tab"
+        aria-selected="true"
+      >
+        Study Mode
+      </button>
+      <button
+        type="button"
+        class="transcript-mode-btn"
+        data-mode-btn="listen"
+        role="tab"
+        aria-selected="false"
+      >
+        Listen Mode
+      </button>
+    </div>
+    <div class="transcript-reveal-tools">
+      <button
+        type="button"
+        class="transcript-reveal-btn"
+        data-reveal-toggle
+      >
+        Start Step-by-Step Reading
+      </button>
+      <button
+        type="button"
+        class="transcript-reveal-next"
+        data-reveal-next
+        hidden
+      >
+        Show Next Paragraph
+      </button>
+    </div>
+  </div>
+  <p class="transcript-reveal-status" data-reveal-status>
+    Reading mode: Full story visible.
+  </p>
   <p class="transcript-hint">
     Tap any word you don't know to see its meaning.
   </p>
 
   {
-    sections.map((section) => {
+    visibleSections.map((section) => {
       const paragraphs = section.content
         .split(/\n{2,}/)
         .map((paragraph) => paragraph.trim())
         .filter(Boolean);
 
       const isNewsStory = section.name === "NEWS STORY";
+      const supportsInlineQuestions = isNewsStory || section.name === "TRANSCRIPT";
 
       return (
         <div class="transcript-section">
           <h3 class="transcript-section-title">{section.name}</h3>
-          {paragraphs.map((paragraph, pIdx) => (
-            <>
-              <p class="transcript-paragraph">
-                {paragraph.split(/(\s+)/).map((token) => {
-                  if (/^\s+$/.test(token)) return token;
+          {supportsInlineQuestions && paragraphs.length > 0 && paragraphQuestions.length === 0 && (
+            <p class="muted" style={{ margin: "0 0 10px", fontStyle: "italic" }}>
+              Inline comprehension checks are not available for this lesson yet.
+            </p>
+          )}
+          {paragraphs.map((paragraph, pIdx) => {
+            const revealIndex = revealCounter;
+            revealCounter += 1;
 
-                  const cleaned = token.replace(/[^a-zA-Z'-]/g, "");
-                  if (cleaned.length < 2) return token;
+            return (
+              <>
+                <p class="transcript-paragraph" data-reveal-index={String(revealIndex)}>
+                  {paragraph.split(/(\s+)/).map((token) => {
+                    if (/^\s+$/.test(token)) return token;
 
-                  return (
-                    <button
-                      type="button"
-                      class="transcript-word"
-                      data-word={cleaned}
-                    >
-                      {token}
-                    </button>
-                  );
-                })}
-              </p>
-              {isNewsStory && questionMap.has(pIdx) && (
-                <InlineQuestion
-                  client:load
-                  question={questionMap.get(pIdx).question}
-                  answer={questionMap.get(pIdx).answer}
-                  hint={questionMap.get(pIdx).hint}
-                />
-              )}
-            </>
-          ))}
+                    const cleaned = token.replace(/[^a-zA-Z'-]/g, "");
+                    if (cleaned.length < 2) return token;
+
+                    return (
+                      <button
+                        type="button"
+                        class="transcript-word"
+                        data-word={cleaned}
+                      >
+                        {token}
+                      </button>
+                    );
+                  })}
+                </p>
+                {supportsInlineQuestions && questionMap.has(pIdx) && (
+                  <div class="inline-question-wrap" data-reveal-index={String(revealIndex)}>
+                    <InlineQuestion
+                      client:load
+                      question={questionMap.get(pIdx).question}
+                      answer={questionMap.get(pIdx).answer}
+                      hint={questionMap.get(pIdx).hint}
+                    />
+                  </div>
+                )}
+              </>
+            );
+          })}
         </div>
       );
     })
@@ -118,7 +190,107 @@ const sections = splitTranscriptSections(transcript);
 <script is:inline>
   const root = document.querySelector("[data-transcript-root]");
   if (root) {
+    const controls = root.querySelector("[data-transcript-controls]");
+    const modeButtons = [...root.querySelectorAll("[data-mode-btn]")];
+    const revealToggle = root.querySelector("[data-reveal-toggle]");
+    const revealNext = root.querySelector("[data-reveal-next]");
+    const revealStatus = root.querySelector("[data-reveal-status]");
+    const revealItems = [...root.querySelectorAll("[data-reveal-index]")]
+      .sort((a, b) => Number(a.dataset.revealIndex || 0) - Number(b.dataset.revealIndex || 0));
+
+    let mode = "study";
+    let revealOn = false;
+    let revealCursor = 0;
+    const totalSteps = revealItems.length
+      ? Math.max(...revealItems.map((item) => Number(item.dataset.revealIndex || 0))) + 1
+      : 0;
+
+    const setMode = (nextMode) => {
+      mode = nextMode;
+      root.dataset.mode = mode;
+      modeButtons.forEach((button) => {
+        const active = button.dataset.modeBtn === mode;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      if (mode === "listen") {
+        revealOn = false;
+      }
+      updateRevealUi();
+    };
+
+    const updateRevealUi = () => {
+      const canReveal = mode === "study" && revealItems.length > 1;
+      if (revealToggle) {
+        revealToggle.disabled = !canReveal;
+        if (!canReveal) {
+          revealToggle.textContent = "Step-by-Step Not Available";
+        } else if (revealOn) {
+          revealToggle.textContent = "Turn Off Step-by-Step";
+        } else {
+          revealToggle.textContent = "Start Step-by-Step Reading";
+        }
+      }
+
+      if (!canReveal || !revealOn) {
+        revealItems.forEach((item) => {
+          item.removeAttribute("data-reveal-hidden");
+        });
+        if (revealNext) revealNext.hidden = true;
+        if (revealStatus) {
+          revealStatus.textContent = mode === "listen"
+            ? "Listen mode: no word popups or question blocks."
+            : "Reading mode: Full story visible.";
+        }
+        return;
+      }
+
+      revealItems.forEach((item) => {
+        const idx = Number(item.dataset.revealIndex || 0);
+        if (idx <= revealCursor) {
+          item.removeAttribute("data-reveal-hidden");
+        } else {
+          item.setAttribute("data-reveal-hidden", "true");
+        }
+      });
+
+      const maxIndex = Math.max(...revealItems.map((item) => Number(item.dataset.revealIndex || 0)));
+      const completed = revealCursor >= maxIndex;
+      if (revealNext) {
+        revealNext.hidden = completed;
+        revealNext.textContent = `Show Next Paragraph (${Math.min(revealCursor + 2, totalSteps)}/${totalSteps})`;
+      }
+      if (revealStatus) {
+        revealStatus.textContent = completed
+          ? `Step-by-step: complete (${totalSteps}/${totalSteps}).`
+          : `Step-by-step: paragraph ${Math.min(revealCursor + 1, totalSteps)} of ${totalSteps}.`;
+      }
+    };
+
+    controls?.addEventListener("click", (event) => {
+      const modeBtn = event.target.closest("[data-mode-btn]");
+      if (modeBtn) {
+        setMode(modeBtn.dataset.modeBtn);
+        return;
+      }
+
+      if (event.target.closest("[data-reveal-toggle]") && revealToggle && !revealToggle.disabled) {
+        revealOn = !revealOn;
+        if (revealOn) revealCursor = 0;
+        updateRevealUi();
+        return;
+      }
+
+      if (event.target.closest("[data-reveal-next]") && revealOn) {
+        revealCursor += 1;
+        updateRevealUi();
+      }
+    });
+
+    setMode("study");
+
     root.addEventListener("click", (event) => {
+      if (root.dataset.mode === "listen") return;
       const target = event.target.closest("[data-word]");
       if (!target) return;
 

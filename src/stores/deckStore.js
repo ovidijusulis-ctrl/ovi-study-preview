@@ -3,7 +3,7 @@
  * Used by VocabPopup and FlashcardDeck to share state across islands.
  * Cards persist in localStorage keyed by episode ID.
  *
- * Card shape: { word, sentence, definition, phonetic, partOfSpeech, lastReviewAt?, intervalHours?, nextReviewAt? }
+ * Card shape: { word, sentence, definition, phonetic, partOfSpeech, example?, lastReviewAt?, intervalHours?, nextReviewAt? }
  */
 import { signal } from "@preact/signals";
 import { computeNextReviewAt, nextIntervalHours, isDueForReview, getDueCards } from "../utils/spaced-repetition.js";

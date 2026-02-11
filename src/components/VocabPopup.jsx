@@ -109,8 +109,10 @@ export default function VocabPopup() {
   const deckFull = deck.value.length >= 20;
 
   const definition = lookup?.definition || "";
+  const rawDefinition = lookup?.rawDefinition || "";
   const phonetic = lookup?.phonetic || "";
   const partOfSpeech = lookup?.partOfSpeech || "";
+  const example = lookup?.example || "";
 
   const handleAdd = () => {
     const success = addCard({
@@ -119,6 +121,7 @@ export default function VocabPopup() {
       definition: definition,
       phonetic: phonetic,
       partOfSpeech: partOfSpeech,
+      example: example,
     });
     if (success) {
       setAddedFeedback(true);
@@ -172,7 +175,21 @@ export default function VocabPopup() {
         {loading ? (
           <p class="vocab-loading">Looking up definition...</p>
         ) : definition ? (
-          <p style={{ marginBottom: "6px" }}>{definition}</p>
+          <div style={{ marginBottom: "6px" }}>
+            <p style={{ margin: "0 0 4px" }}>
+              <strong>Simple meaning:</strong> {definition}
+            </p>
+            {rawDefinition && rawDefinition !== definition && (
+              <details>
+                <summary style={{ cursor: "pointer", fontSize: "13px" }}>
+                  See original dictionary wording
+                </summary>
+                <p class="muted" style={{ fontSize: "13px", marginTop: "6px", marginBottom: 0 }}>
+                  {rawDefinition}
+                </p>
+              </details>
+            )}
+          </div>
         ) : (
           <p class="muted" style={{ fontSize: "13px", marginBottom: "6px" }}>
             Definition not found in dictionary.

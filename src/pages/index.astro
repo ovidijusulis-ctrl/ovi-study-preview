@@ -12,150 +12,143 @@ const episodeFiles = fs.existsSync(episodesDir)
 const episodes = episodeFiles
   .map((file) => {
     const raw = fs.readFileSync(path.join(episodesDir, file), "utf8");
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    parsed.slug = parsed.slug || parsed.date;
+    parsed.id = parsed.id || `episode-${parsed.slug}`;
+    return parsed;
   })
-  .sort((a, b) => String(b.date).localeCompare(String(a.date)));
-
-// Collect all unique categories
-const allCategories = [...new Set(episodes.map((ep) => ep.category).filter(Boolean))].sort();
-
-function formatDate(dateString) {
-  const date = new Date(`${dateString}T00:00:00`);
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
+  .sort((a, b) => {
+    const byDate = String(b.date).localeCompare(String(a.date));
+    if (byDate !== 0) return byDate;
+    return String(b.slug || "").localeCompare(String(a.slug || ""));
   });
-}
-
-const categoryColors = {
-  global: "#6c8cff",
-  entertainment: "#c084fc",
-  tech: "#22d3ee",
-  sports: "#4ade80",
-  science: "#facc15",
-  lifestyle: "#fb923c",
-};
-
-function getCategoryColor(cat) {
-  return categoryColors[cat] || "#8b8fa3";
-}
 ---
 
 <Layout title="Ovi English School | Episode Archive">
-  <section class="card">
+  <section class="card archive-toolbar">
     <h1>Episode Archive</h1>
-    <p>
-      Learn English with real stories. Choose an episode to open the full lesson with audio,
-      transcript, flashcards, and quiz.
-    </p>
-
-    {allCategories.length > 0 && (
-      <div class="category-filter" id="categoryFilter">
-        <button class="filter-badge active" data-category="all">All</button>
-        {allCategories.map((cat) => (
-          <button
-            class="filter-badge"
-            data-category={cat}
-            style={`--cat-color: ${getCategoryColor(cat)}`}
-          >
-            {cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </button>
-        ))}
-      </div>
-    )}
+    <div class="archive-sort" role="tablist" aria-label="Sort lessons">
+      <button type="button" class="archive-sort-btn is-active" data-sort-btn="newest">Newest</button>
+      <button type="button" class="archive-sort-btn" data-sort-btn="popular">Popular</button>
+    </div>
   </section>
 
   <section class="episode-list" id="episodeList">
     {
       episodes.map((episode) => (
-        <article class="card episode-card" data-category={episode.category || ""}>
-          <p class="muted">{formatDate(episode.date)}</p>
+        <article
+          class="card episode-card"
+          data-date={episode.date || ""}
+          data-slug={episode.slug || ""}
+          data-episode-id={episode.id || ""}
+        >
           <h2>
-            <a href={`${base}episodes/${episode.date}`}>{episode.topic}</a>
+            <a href={`${base}episodes/${episode.slug}`}>{episode.topic}</a>
           </h2>
-          <div class="episode-meta">
-            <span class="badge">
-              {episode.level === "intermediate" ? "Intermediate B1-B2" : "Beginner A1-A2"}
-            </span>
-            {episode.category && (
-              <span
-                class="badge category-badge"
-                style={`background: ${getCategoryColor(episode.category)}22; color: ${getCategoryColor(episode.category)}`}
-              >
-                {episode.category.charAt(0).toUpperCase() + episode.category.slice(1)}
-              </span>
-            )}
-            <span class="muted">{episode.questions?.length || 0} questions</span>
-          </div>
-          <p class="episode-summary">{episode.summary}</p>
-          <a class="button button-primary" href={`${base}episodes/${episode.date}`}>
-            Open Lesson
-          </a>
         </article>
       ))
     }
   </section>
 </Layout>
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const filterContainer = document.getElementById("categoryFilter");
-    if (!filterContainer) return;
+<script is:inline>
+  const list = document.getElementById("episodeList");
+  const sortButtons = [...document.querySelectorAll("[data-sort-btn]")];
+  const SORT_KEY = "episode-archive-sort-mode";
+  const RATING_PREFIX = "episode-rating-";
 
-    const buttons = filterContainer.querySelectorAll(".filter-badge");
-    const cards = document.querySelectorAll(".episode-card");
+  if (list && sortButtons.length > 0) {
+    const cards = [...list.querySelectorAll(".episode-card")].map((el, index) => ({
+      el,
+      index,
+      date: String(el.dataset.date || ""),
+      slug: String(el.dataset.slug || ""),
+      episodeId: String(el.dataset.episodeId || ""),
+    }));
 
-    buttons.forEach((btn) => {
+    const getDateValue = (dateString) => {
+      const timestamp = Date.parse(dateString);
+      return Number.isNaN(timestamp) ? 0 : timestamp;
+    };
+
+    const getSavedRating = (episodeId) => {
+      if (!episodeId) return 0;
+      try {
+        const raw = localStorage.getItem(`${RATING_PREFIX}${episodeId}`);
+        if (!raw) return 0;
+        const parsed = JSON.parse(raw);
+        const avg = Number(parsed?.average || 0);
+        return Number.isFinite(avg) ? avg : 0;
+      } catch (_err) {
+        return 0;
+      }
+    };
+
+    const popularityScore = (card) => {
+      const rating = getSavedRating(card.episodeId); // 0..5
+      const ageMs = Math.max(0, Date.now() - getDateValue(card.date));
+      const ageDays = ageMs / (1000 * 60 * 60 * 24);
+      const freshness = Math.max(0, 30 - ageDays) / 6; // up to +5
+      return rating * 20 + freshness;
+    };
+
+    const comparators = {
+      newest: (a, b) => {
+        const byDate = getDateValue(b.date) - getDateValue(a.date);
+        if (byDate !== 0) return byDate;
+        const bySlug = b.slug.localeCompare(a.slug);
+        if (bySlug !== 0) return bySlug;
+        return a.index - b.index;
+      },
+      popular: (a, b) => {
+        const byScore = popularityScore(b) - popularityScore(a);
+        if (byScore !== 0) return byScore;
+        return comparators.newest(a, b);
+      },
+    };
+
+    const setActiveButton = (mode) => {
+      sortButtons.forEach((btn) => {
+        const active = btn.dataset.sortBtn === mode;
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-selected", active ? "true" : "false");
+      });
+    };
+
+    const render = (mode) => {
+      const comparator = comparators[mode] || comparators.newest;
+      cards
+        .slice()
+        .sort(comparator)
+        .forEach((card) => list.appendChild(card.el));
+      setActiveButton(mode);
+      try {
+        localStorage.setItem(SORT_KEY, mode);
+      } catch (_err) {
+        // ignore localStorage failures
+      }
+    };
+
+    sortButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
-        buttons.forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-
-        const cat = btn.dataset.category;
-        cards.forEach((card) => {
-          if (cat === "all" || card.dataset.category === cat) {
-            card.style.display = "";
-          } else {
-            card.style.display = "none";
-          }
-        });
+        const mode = btn.dataset.sortBtn || "newest";
+        render(mode);
       });
     });
-  });
-</script>
 
-<style>
-  .category-filter {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: 12px;
+    window.addEventListener("episode-rating-updated", () => {
+      const active = sortButtons.find((btn) => btn.classList.contains("is-active"));
+      const mode = active?.dataset.sortBtn || "newest";
+      if (mode === "popular") render("popular");
+    });
+
+    let initialMode = "newest";
+    try {
+      const stored = localStorage.getItem(SORT_KEY);
+      if (stored === "newest" || stored === "popular") initialMode = stored;
+    } catch (_err) {
+      // ignore localStorage failures
+    }
+    render(initialMode);
   }
-  .filter-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 16px;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1px solid var(--border, #333);
-    background: transparent;
-    color: var(--text-muted, #999);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .filter-badge:hover {
-    border-color: var(--cat-color, var(--primary, #6c8cff));
-    color: var(--cat-color, var(--primary, #6c8cff));
-  }
-  .filter-badge.active {
-    background: var(--cat-color, var(--primary, #6c8cff));
-    color: #fff;
-    border-color: var(--cat-color, var(--primary, #6c8cff));
-  }
-  .category-badge {
-    border-radius: 10px;
-    font-size: 12px;
-    padding: 2px 8px;
-  }
-</style>
+</script>

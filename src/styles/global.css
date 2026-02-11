@@ -239,6 +239,70 @@ a:focus-visible {
   position: relative;
 }
 
+.transcript-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.transcript-mode-group {
+  display: inline-flex;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.transcript-mode-btn {
+  border: none;
+  background: #fff;
+  color: var(--text-light);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.transcript-mode-btn + .transcript-mode-btn {
+  border-left: 1px solid var(--border-light);
+}
+
+.transcript-mode-btn.is-active {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--primary-blue);
+}
+
+.transcript-reveal-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.transcript-reveal-btn,
+.transcript-reveal-next {
+  border: 1px solid var(--border-light);
+  background: #fff;
+  color: var(--text-dark);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.transcript-reveal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.transcript-reveal-status {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--text-light);
+}
+
 .transcript-section {
   margin-bottom: 16px;
 }
@@ -277,6 +341,53 @@ a:focus-visible {
 
 .transcript-word:hover {
   border-bottom-color: var(--text-light);
+}
+
+.transcript-root[data-mode="listen"] .transcript-word {
+  cursor: text;
+  pointer-events: none;
+  border-bottom-color: transparent;
+}
+
+.transcript-root[data-mode="listen"] .inline-question-wrap,
+.transcript-root[data-mode="listen"] .transcript-hint {
+  display: none;
+}
+
+.transcript-root[data-mode="listen"] .transcript-reveal-tools {
+  opacity: 0.55;
+}
+
+[data-reveal-hidden="true"] {
+  display: none;
+}
+
+.archive-toolbar {
+  display: grid;
+  gap: 12px;
+}
+
+.archive-sort {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.archive-sort-btn {
+  border: 1px solid var(--border-light);
+  background: #fff;
+  color: var(--text-dark);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.archive-sort-btn.is-active {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+  background: rgba(37, 99, 235, 0.08);
 }
 
 /* ── Vocab Popup (bottom sheet on mobile, dialog on desktop) ── */
@@ -447,14 +558,36 @@ a:focus-visible {
 }
 
 .flashcard-definition {
-  font-size: 16px;
+  font-size: 15px;
   margin-bottom: 8px;
+  color: var(--text-dark);
 }
 
 .flashcard-example {
-  font-size: 14px;
-  color: var(--text-light);
-  font-style: italic;
+  font-size: 16px;
+  color: var(--text-dark);
+  font-style: normal;
+  line-height: 1.55;
+}
+
+.flashcard-context-box {
+  width: 100%;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  background: rgba(37, 99, 235, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+}
+
+.flashcard-context-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--primary-blue);
+  text-transform: uppercase;
 }
 
 .flashcard-nav {
@@ -571,44 +704,85 @@ a:focus-visible {
 
 .feedback-row {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .feedback-label {
-  width: 80px;
-  text-align: right;
+  width: 210px;
+  text-align: left;
   font-size: 14px;
+  line-height: 1.4;
   color: var(--text-light);
+  padding-top: 8px;
 }
 
 .feedback-options {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .feedback-emoji {
-  font-size: 28px;
+  font-size: 24px;
   background: transparent;
   border: 2px solid transparent;
   border-radius: 12px;
-  padding: 8px;
+  padding: 6px;
   cursor: pointer;
-  min-width: 48px;
-  min-height: 48px;
+  min-width: 50px;
+  min-height: 50px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
+.feedback-emoji small {
+  font-size: 11px;
+  color: var(--text-light);
+  line-height: 1;
+}
+
 .feedback-emoji:hover {
-  transform: scale(1.15);
+  transform: scale(1.08);
 }
 
 .feedback-emoji.selected {
   border-color: var(--primary-blue);
   background: rgba(37, 99, 235, 0.08);
-  transform: scale(1.15);
+  transform: scale(1.08);
+}
+
+.feedback-score {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 10px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary-blue);
+}
+
+.feedback-edit-btn {
+  margin-top: 8px;
+}
+
+@media (max-width: 680px) {
+  .feedback-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .feedback-label {
+    width: auto;
+    padding-top: 0;
+  }
 }
 
 /* ── Inline Comprehension Questions ── */

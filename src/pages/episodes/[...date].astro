@@ -3,7 +3,7 @@ import Layout from "../../layouts/Layout.astro";
 import AudioPlayer from "../../components/AudioPlayer.astro";
 import Transcript from "../../components/Transcript.astro";
 import FlashcardDeck from "../../components/FlashcardDeck.jsx";
-import QuizSection from "../../components/QuizSection.jsx";
+import FlashcardVocabTest from "../../components/FlashcardVocabTest.jsx";
 import FeedbackWidget from "../../components/FeedbackWidget.jsx";
 
 export async function getStaticPaths() {
@@ -15,11 +15,13 @@ export async function getStaticPaths() {
     : [];
   const episodes = episodeFiles.map((file) => {
     const raw = fs.readFileSync(path.join(episodesDir, file), "utf8");
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    parsed.slug = parsed.slug || parsed.date;
+    return parsed;
   });
 
   return episodes.map((episode) => ({
-    params: { date: episode.date },
+    params: { date: episode.slug },
     props: { episode },
   }));
 }
@@ -27,14 +29,16 @@ export async function getStaticPaths() {
 const { episode } = Astro.props;
 const pageTitle = `${episode.topic} | Ovi English School`;
 const base = import.meta.env.BASE_URL;
-const formattedDate = new Date(`${episode.date}T00:00:00`).toLocaleDateString("en-US", {
-  weekday: "long",
-  month: "long",
-  day: "numeric",
-  year: "numeric",
-});
-
 const pdfUrl = episode?.urls?.pdf || "";
+const headerSummarySource = String(
+  episode.summary
+    || episode.sections?.newsStory
+    || ""
+).replace(/\s+/g, " ").trim();
+
+const shortSummary = headerSummarySource.length > 180
+  ? `${headerSummarySource.slice(0, 177).trim()}...`
+  : headerSummarySource;
 const ldJson = {
   "@context": "https://schema.org/",
   "@type": "PodcastEpisode",
@@ -59,7 +63,7 @@ const ldJson = {
     name: "Ovi English School",
     url: "https://ovidijusulis-ctrl.github.io/ovi-study-site",
   },
-  url: `https://ovidijusulis-ctrl.github.io/ovi-study-site/episodes/${episode.date}`,
+  url: `https://ovidijusulis-ctrl.github.io/ovi-study-site/episodes/${episode.slug || episode.date}`,
 };
 ---
 
@@ -69,15 +73,8 @@ const ldJson = {
   <article>
     <section class="card episode-header">
       <a class="back-link" href={base}>Back to Archive</a>
-      <p class="muted">{formattedDate}</p>
       <h1>{episode.topic}</h1>
-      <div class="episode-meta">
-        <span class="badge">
-          {episode.level === "intermediate" ? "Intermediate B1-B2" : "Beginner A1-A2"}
-        </span>
-        <span class="muted">Source: <a href={episode.source?.url}>{episode.source?.name}</a></span>
-      </div>
-      <p>{episode.summary}</p>
+      <p>{shortSummary || "Short story summary not available."}</p>
     </section>
 
     <AudioPlayer
@@ -87,15 +84,12 @@ const ldJson = {
     />
     <Transcript transcript={episode.transcript} paragraphQuestions={episode.paragraphQuestions || []} />
     <FlashcardDeck client:load episodeId={episode.id} />
-    <QuizSection
-      client:load
-      questions={episode.questions || []}
-    />
+    <FlashcardVocabTest client:load episodeId={episode.id} />
 
     <section class="card listen-again" id="listen-again">
       <h2>Listen Again</h2>
       <p>
-        You read the story and completed the quiz. Now listen one more
+        You read the story and practiced the key words. Now listen one more
         time — you will understand much more!
       </p>
       {
@@ -149,7 +143,7 @@ const ldJson = {
         </li>
         <li>
           <a
-            href={`https://ovidijusulis-ctrl.github.io/ovi-study-site/episodes/${episode.date}`}
+            href={`https://ovidijusulis-ctrl.github.io/ovi-study-site/episodes/${episode.slug || episode.date}`}
             onclick="if(navigator.share){event.preventDefault();navigator.share({title:document.title,url:window.location.href})}"
           >
             Share this lesson
