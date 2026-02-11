@@ -99,26 +99,16 @@ let revealCounter = 0;
         Listen Mode
       </button>
     </div>
-    <div class="transcript-reveal-tools">
-      <button
-        type="button"
-        class="transcript-reveal-btn"
-        data-reveal-toggle
-      >
-        Start Step-by-Step Reading
-      </button>
-      <button
-        type="button"
-        class="transcript-reveal-next"
-        data-reveal-next
-        hidden
-      >
-        Show Next Paragraph
-      </button>
-    </div>
+    <button
+      type="button"
+      class="transcript-guided-start"
+      data-guided-start
+    >
+      Start Guided Reading
+    </button>
   </div>
-  <p class="transcript-reveal-status" data-reveal-status>
-    Reading mode: Full story visible.
+  <p class="transcript-reveal-status" data-guided-status>
+    Study mode: full transcript visible.
   </p>
   <p class="transcript-hint">
     Tap any word you don't know to see its meaning.
@@ -185,6 +175,27 @@ let revealCounter = 0;
   }
 
   <VocabPopup client:load />
+
+  <div class="transcript-guided-dock" data-guided-dock hidden>
+    <div class="transcript-guided-progress" data-guided-progress>
+      Part 1/1
+    </div>
+    <div class="transcript-guided-actions">
+      <button type="button" class="transcript-guided-btn" data-guided-next>Next Part</button>
+      <button type="button" class="transcript-guided-btn" data-guided-auto>Auto</button>
+      <button type="button" class="transcript-guided-btn" data-guided-pause hidden>Pause</button>
+      <button type="button" class="transcript-guided-btn" data-guided-reveal-all>Reveal All</button>
+      <button type="button" class="transcript-guided-btn transcript-guided-btn-ghost" data-guided-exit>Exit</button>
+      <label class="transcript-guided-speed-wrap" for="guided-speed">
+        <span>Speed</span>
+        <select id="guided-speed" class="transcript-guided-speed" data-guided-speed>
+          <option value="4000">4s</option>
+          <option value="6000" selected>6s</option>
+          <option value="8000">8s</option>
+        </select>
+      </label>
+    </div>
+  </div>
 </section>
 
 <script is:inline>
@@ -192,18 +203,57 @@ let revealCounter = 0;
   if (root) {
     const controls = root.querySelector("[data-transcript-controls]");
     const modeButtons = [...root.querySelectorAll("[data-mode-btn]")];
-    const revealToggle = root.querySelector("[data-reveal-toggle]");
-    const revealNext = root.querySelector("[data-reveal-next]");
-    const revealStatus = root.querySelector("[data-reveal-status]");
+    const guidedStart = root.querySelector("[data-guided-start]");
+    const guidedStatus = root.querySelector("[data-guided-status]");
+    const guidedDock = root.querySelector("[data-guided-dock]");
+    const guidedProgress = root.querySelector("[data-guided-progress]");
+    const guidedNext = root.querySelector("[data-guided-next]");
+    const guidedAuto = root.querySelector("[data-guided-auto]");
+    const guidedPause = root.querySelector("[data-guided-pause]");
+    const guidedRevealAll = root.querySelector("[data-guided-reveal-all]");
+    const guidedExit = root.querySelector("[data-guided-exit]");
+    const guidedSpeed = root.querySelector("[data-guided-speed]");
     const revealItems = [...root.querySelectorAll("[data-reveal-index]")]
       .sort((a, b) => Number(a.dataset.revealIndex || 0) - Number(b.dataset.revealIndex || 0));
 
     let mode = "study";
-    let revealOn = false;
-    let revealCursor = 0;
-    const totalSteps = revealItems.length
-      ? Math.max(...revealItems.map((item) => Number(item.dataset.revealIndex || 0))) + 1
-      : 0;
+    let guidedOn = false;
+    let guidedCursor = 0;
+    let autoTimer = null;
+    let autoMs = Number(guidedSpeed?.value || 6000);
+    const stepIndexes = [...new Set(
+      revealItems.map((item) => Number(item.dataset.revealIndex || 0))
+    )].sort((a, b) => a - b);
+    const totalSteps = stepIndexes.length;
+
+    const stopAuto = () => {
+      if (autoTimer) {
+        window.clearInterval(autoTimer);
+        autoTimer = null;
+      }
+      if (guidedAuto) guidedAuto.hidden = false;
+      if (guidedPause) guidedPause.hidden = true;
+    };
+
+    const scrollToStep = (index) => {
+      const target = root.querySelector(`[data-reveal-index="${index}"]`);
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+
+    const applyVisibility = () => {
+      if (!guidedOn) {
+        revealItems.forEach((item) => item.removeAttribute("data-reveal-hidden"));
+        return;
+      }
+      revealItems.forEach((item) => {
+        const idx = Number(item.dataset.revealIndex || 0);
+        if (idx <= guidedCursor) {
+          item.removeAttribute("data-reveal-hidden");
+        } else {
+          item.setAttribute("data-reveal-hidden", "true");
+        }
+      });
+    };
 
     const setMode = (nextMode) => {
       mode = nextMode;
@@ -214,57 +264,69 @@ let revealCounter = 0;
         button.setAttribute("aria-selected", active ? "true" : "false");
       });
       if (mode === "listen") {
-        revealOn = false;
+        guidedOn = false;
+        stopAuto();
       }
-      updateRevealUi();
+      updateGuidedUi();
     };
 
-    const updateRevealUi = () => {
-      const canReveal = mode === "study" && revealItems.length > 1;
-      if (revealToggle) {
-        revealToggle.disabled = !canReveal;
-        if (!canReveal) {
-          revealToggle.textContent = "Step-by-Step Not Available";
-        } else if (revealOn) {
-          revealToggle.textContent = "Turn Off Step-by-Step";
+    const updateGuidedUi = () => {
+      const canGuide = mode === "study" && totalSteps > 1;
+      if (guidedStart) {
+        guidedStart.disabled = !canGuide;
+        if (!canGuide) {
+          guidedStart.textContent = "Guided Reading Unavailable";
+        } else if (guidedOn) {
+          guidedStart.textContent = "Exit Guided Reading";
         } else {
-          revealToggle.textContent = "Start Step-by-Step Reading";
+          guidedStart.textContent = "Start Guided Reading";
         }
       }
 
-      if (!canReveal || !revealOn) {
-        revealItems.forEach((item) => {
-          item.removeAttribute("data-reveal-hidden");
-        });
-        if (revealNext) revealNext.hidden = true;
-        if (revealStatus) {
-          revealStatus.textContent = mode === "listen"
-            ? "Listen mode: no word popups or question blocks."
-            : "Reading mode: Full story visible.";
+      if (!canGuide || !guidedOn) {
+        root.dataset.guided = "off";
+        applyVisibility();
+        stopAuto();
+        if (guidedDock) guidedDock.hidden = true;
+        if (guidedStatus) {
+          guidedStatus.textContent = mode === "listen"
+            ? "Listen mode: no word popups or inline checks."
+            : "Study mode: full transcript visible.";
         }
         return;
       }
 
-      revealItems.forEach((item) => {
-        const idx = Number(item.dataset.revealIndex || 0);
-        if (idx <= revealCursor) {
-          item.removeAttribute("data-reveal-hidden");
-        } else {
-          item.setAttribute("data-reveal-hidden", "true");
-        }
-      });
+      applyVisibility();
+      root.dataset.guided = "on";
+      if (guidedDock) guidedDock.hidden = false;
+      const completed = guidedCursor >= stepIndexes[stepIndexes.length - 1];
 
-      const maxIndex = Math.max(...revealItems.map((item) => Number(item.dataset.revealIndex || 0)));
-      const completed = revealCursor >= maxIndex;
-      if (revealNext) {
-        revealNext.hidden = completed;
-        revealNext.textContent = `Show Next Paragraph (${Math.min(revealCursor + 2, totalSteps)}/${totalSteps})`;
+      if (guidedNext) {
+        guidedNext.disabled = completed;
+        guidedNext.textContent = completed ? "Complete" : "Next Part";
       }
-      if (revealStatus) {
-        revealStatus.textContent = completed
-          ? `Step-by-step: complete (${totalSteps}/${totalSteps}).`
-          : `Step-by-step: paragraph ${Math.min(revealCursor + 1, totalSteps)} of ${totalSteps}.`;
+      if (guidedProgress) {
+        const current = Math.min(guidedCursor + 1, totalSteps);
+        guidedProgress.textContent = `Part ${current}/${totalSteps}`;
       }
+      if (guidedStatus) {
+        guidedStatus.textContent = completed
+          ? `Guided reading complete (${totalSteps}/${totalSteps}).`
+          : `Guided reading: part ${Math.min(guidedCursor + 1, totalSteps)} of ${totalSteps}.`;
+      }
+    };
+
+    const advanceGuided = () => {
+      const lastIndex = stepIndexes[stepIndexes.length - 1] ?? 0;
+      if (guidedCursor >= lastIndex) {
+        stopAuto();
+        updateGuidedUi();
+        return false;
+      }
+      guidedCursor += 1;
+      updateGuidedUi();
+      scrollToStep(guidedCursor);
+      return true;
     };
 
     controls?.addEventListener("click", (event) => {
@@ -274,17 +336,67 @@ let revealCounter = 0;
         return;
       }
 
-      if (event.target.closest("[data-reveal-toggle]") && revealToggle && !revealToggle.disabled) {
-        revealOn = !revealOn;
-        if (revealOn) revealCursor = 0;
-        updateRevealUi();
+      if (event.target.closest("[data-guided-start]") && guidedStart && !guidedStart.disabled) {
+        guidedOn = !guidedOn;
+        if (guidedOn) {
+          guidedCursor = 0;
+          scrollToStep(guidedCursor);
+        } else {
+          stopAuto();
+        }
+        updateGuidedUi();
         return;
       }
+    });
 
-      if (event.target.closest("[data-reveal-next]") && revealOn) {
-        revealCursor += 1;
-        updateRevealUi();
+    guidedNext?.addEventListener("click", () => {
+      if (!guidedOn) return;
+      advanceGuided();
+    });
+
+    guidedAuto?.addEventListener("click", () => {
+      if (!guidedOn) {
+        guidedOn = true;
+        guidedCursor = 0;
+        scrollToStep(guidedCursor);
       }
+      stopAuto();
+      autoTimer = window.setInterval(() => {
+        const didAdvance = advanceGuided();
+        if (!didAdvance) stopAuto();
+      }, autoMs);
+      guidedAuto.hidden = true;
+      if (guidedPause) guidedPause.hidden = false;
+      updateGuidedUi();
+    });
+
+    guidedPause?.addEventListener("click", () => {
+      stopAuto();
+      updateGuidedUi();
+    });
+
+    guidedRevealAll?.addEventListener("click", () => {
+      if (!guidedOn) {
+        guidedOn = true;
+      }
+      stopAuto();
+      guidedCursor = stepIndexes[stepIndexes.length - 1] ?? 0;
+      updateGuidedUi();
+      scrollToStep(guidedCursor);
+    });
+
+    guidedExit?.addEventListener("click", () => {
+      guidedOn = false;
+      stopAuto();
+      updateGuidedUi();
+    });
+
+    guidedSpeed?.addEventListener("change", () => {
+      autoMs = Number(guidedSpeed.value || 6000);
+      if (autoTimer) {
+        stopAuto();
+      }
+      updateGuidedUi();
     });
 
     setMode("study");
