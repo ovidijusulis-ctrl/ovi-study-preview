@@ -252,6 +252,12 @@ a:focus-visible {
   margin-bottom: 10px;
 }
 
+.transcript-guided-top-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .transcript-mode-group {
   display: inline-flex;
   border: 1px solid var(--border-light);
@@ -289,8 +295,24 @@ a:focus-visible {
   cursor: pointer;
 }
 
+.transcript-guided-toggle {
+  border: 1px solid var(--border-light);
+  background: #fff;
+  color: var(--text-light);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
 .transcript-guided-start:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.transcript-guided-toggle:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -841,6 +863,17 @@ a:focus-visible {
 }
 
 @media (max-width: 680px) {
+  .transcript-guided-top-controls {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .transcript-guided-toggle {
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+
   .transcript-root[data-guided="on"] {
     padding-bottom: 84px;
   }

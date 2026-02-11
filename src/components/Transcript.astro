@@ -99,13 +99,22 @@ let revealCounter = 0;
         Listen Mode
       </button>
     </div>
-    <button
-      type="button"
-      class="transcript-guided-start"
-      data-guided-start
-    >
-      Start Guided Reading
-    </button>
+    <div class="transcript-guided-top-controls">
+      <button
+        type="button"
+        class="transcript-guided-start"
+        data-guided-start
+      >
+        Start Guided Reading
+      </button>
+      <button
+        type="button"
+        class="transcript-guided-toggle"
+        data-guided-visibility
+      >
+        Hide Guided UI
+      </button>
+    </div>
   </div>
   <p class="transcript-reveal-status" data-guided-status>
     Study mode: full transcript visible.
@@ -205,6 +214,7 @@ let revealCounter = 0;
     const controls = root.querySelector("[data-transcript-controls]");
     const modeButtons = [...root.querySelectorAll("[data-mode-btn]")];
     const guidedStart = root.querySelector("[data-guided-start]");
+    const guidedVisibility = root.querySelector("[data-guided-visibility]");
     const guidedStatus = root.querySelector("[data-guided-status]");
     const guidedDock = root.querySelector("[data-guided-dock]");
     const guidedProgress = root.querySelector("[data-guided-progress]");
@@ -220,6 +230,7 @@ let revealCounter = 0;
 
     let mode = "study";
     let guidedOn = false;
+    let guidedUiVisible = true;
     let guidedCursor = 0;
     let autoTimer = null;
     let autoMs = Number(guidedSpeed?.value || 6000);
@@ -227,6 +238,17 @@ let revealCounter = 0;
       revealItems.map((item) => Number(item.dataset.revealIndex || 0))
     )].sort((a, b) => a - b);
     const totalSteps = stepIndexes.length;
+
+    try {
+      const saved = window.localStorage.getItem("ovi-guided-ui-visible");
+      if (saved === "0") guidedUiVisible = false;
+    } catch (_) {}
+
+    const persistGuidedUiVisibility = () => {
+      try {
+        window.localStorage.setItem("ovi-guided-ui-visible", guidedUiVisible ? "1" : "0");
+      } catch (_) {}
+    };
 
     const stopAuto = () => {
       if (autoTimer) {
@@ -275,6 +297,7 @@ let revealCounter = 0;
     const updateGuidedUi = () => {
       const canGuide = mode === "study" && totalSteps > 1;
       if (guidedStart) {
+        guidedStart.hidden = !guidedUiVisible || guidedOn;
         guidedStart.disabled = !canGuide;
         if (!canGuide) {
           guidedStart.textContent = "Guided Reading Unavailable";
@@ -284,6 +307,11 @@ let revealCounter = 0;
           guidedStart.textContent = "Start Guided Reading";
         }
       }
+      if (guidedVisibility) {
+        guidedVisibility.hidden = !canGuide;
+        guidedVisibility.disabled = guidedOn;
+        guidedVisibility.textContent = guidedUiVisible ? "Hide Guided UI" : "Show Guided UI";
+      }
 
       if (!canGuide || !guidedOn) {
         root.dataset.guided = "off";
@@ -291,6 +319,7 @@ let revealCounter = 0;
         stopAuto();
         if (guidedDock) guidedDock.hidden = true;
         if (guidedStatus) {
+          guidedStatus.hidden = mode === "study" && !guidedUiVisible;
           guidedStatus.textContent = mode === "listen"
             ? "Listen mode: no word popups or inline checks."
             : "Study mode: full transcript visible.";
@@ -301,6 +330,7 @@ let revealCounter = 0;
       applyVisibility();
       root.dataset.guided = "on";
       if (guidedDock) guidedDock.hidden = false;
+      if (guidedStatus) guidedStatus.hidden = false;
       const completed = guidedCursor >= stepIndexes[stepIndexes.length - 1];
 
       if (guidedNext) {
@@ -374,6 +404,13 @@ let revealCounter = 0;
 
     guidedPause?.addEventListener("click", () => {
       stopAuto();
+      updateGuidedUi();
+    });
+
+    guidedVisibility?.addEventListener("click", () => {
+      if (guidedOn) return;
+      guidedUiVisible = !guidedUiVisible;
+      persistGuidedUiVisibility();
       updateGuidedUi();
     });
 
