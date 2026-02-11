@@ -98,14 +98,13 @@ let revealCounter = 0;
       >
         Listen Mode
       </button>
-    </div>
-    <div class="transcript-guided-top-controls">
       <button
         type="button"
-        class="transcript-guided-start"
+        class="transcript-mode-btn transcript-guided-start"
         data-guided-start
+        aria-pressed="false"
       >
-        Start Reading Mode
+        Reading Mode
       </button>
     </div>
   </div>
@@ -277,12 +276,14 @@ let revealCounter = 0;
     const updateGuidedUi = () => {
       const canGuide = mode === "study" && totalSteps > 1;
       if (guidedStart) {
-        guidedStart.hidden = mode !== "study";
+        guidedStart.hidden = false;
         guidedStart.disabled = !canGuide;
-        if (!canGuide) {
+        guidedStart.classList.toggle("is-active", guidedOn && canGuide);
+        guidedStart.setAttribute("aria-pressed", guidedOn && canGuide ? "true" : "false");
+        if (!canGuide && mode === "study") {
           guidedStart.textContent = "Reading Mode Unavailable";
         } else {
-          guidedStart.textContent = guidedOn ? "Stop Reading Mode" : "Start Reading Mode";
+          guidedStart.textContent = "Reading Mode";
         }
       }
 

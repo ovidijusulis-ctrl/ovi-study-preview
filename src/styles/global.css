@@ -248,21 +248,17 @@ a:focus-visible {
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   margin-bottom: 10px;
 }
 
-.transcript-guided-top-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .transcript-mode-group {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   border: 1px solid var(--border-light);
   border-radius: 8px;
   overflow: hidden;
+  width: min(100%, 560px);
 }
 
 .transcript-mode-btn {
@@ -273,6 +269,8 @@ a:focus-visible {
   font-size: 13px;
   padding: 8px 12px;
   cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .transcript-mode-btn + .transcript-mode-btn {
@@ -285,14 +283,7 @@ a:focus-visible {
 }
 
 .transcript-guided-start {
-  border: 1px solid var(--border-light);
-  background: #fff;
-  color: var(--text-dark);
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 7px 10px;
-  cursor: pointer;
+  color: var(--text-light);
 }
 
 .transcript-guided-start:disabled {
@@ -370,7 +361,7 @@ a:focus-visible {
   left: 50%;
   bottom: 12px;
   transform: translateX(-50%);
-  width: min(860px, calc(100vw - 24px));
+  width: min(900px, calc(100vw - 32px));
   background: #fff;
   border: 1px solid var(--border-light);
   border-radius: 12px;
@@ -847,10 +838,8 @@ a:focus-visible {
 }
 
 @media (max-width: 680px) {
-  .transcript-guided-top-controls {
+  .transcript-mode-group {
     width: 100%;
-    justify-content: flex-end;
-    gap: 6px;
   }
 
   .transcript-root[data-guided="on"] {
@@ -979,6 +968,10 @@ a:focus-visible {
 
 /* Tablet and up */
 @media (min-width: 640px) {
+  .transcript-guided-dock {
+    width: min(900px, calc(100vw - 48px));
+  }
+
   .container {
     padding: 0 24px;
   }
