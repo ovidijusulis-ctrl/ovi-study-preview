@@ -191,9 +191,10 @@ let revealCounter = 0;
       <label class="transcript-guided-speed-wrap" for="guided-speed">
         <span>Speed</span>
         <select id="guided-speed" class="transcript-guided-speed" data-guided-speed>
-          <option value="4000">4s</option>
-          <option value="6000" selected>6s</option>
-          <option value="8000">8s</option>
+          <option value="6000">6s</option>
+          <option value="8000" selected>8s</option>
+          <option value="10000">10s</option>
+          <option value="12000">12s</option>
         </select>
       </label>
     </div>
@@ -223,7 +224,7 @@ let revealCounter = 0;
     let guidedOn = false;
     let guidedCursor = 0;
     let autoTimer = null;
-    let autoMs = Number(guidedSpeed?.value || 6000);
+    let autoMs = Number(guidedSpeed?.value || 8000);
     const stepIndexes = [...new Set(
       revealItems.map((item) => Number(item.dataset.revealIndex || 0))
     )].sort((a, b) => a - b);
@@ -433,7 +434,7 @@ let revealCounter = 0;
     });
 
     guidedSpeed?.addEventListener("change", () => {
-      autoMs = Number(guidedSpeed.value || 6000);
+      autoMs = Number(guidedSpeed.value || 8000);
       if (autoTimer) stopAuto();
       updateGuidedUi();
     });
