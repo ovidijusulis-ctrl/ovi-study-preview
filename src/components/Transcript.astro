@@ -105,14 +105,7 @@ let revealCounter = 0;
         class="transcript-guided-start"
         data-guided-start
       >
-        Start Guided Reading
-      </button>
-      <button
-        type="button"
-        class="transcript-guided-toggle"
-        data-guided-visibility
-      >
-        Hide Guided UI
+        Start Reading Mode
       </button>
     </div>
   </div>
@@ -195,7 +188,6 @@ let revealCounter = 0;
       <button type="button" class="transcript-guided-btn" data-guided-pause hidden>Pause</button>
       <button type="button" class="transcript-guided-btn" data-guided-reset>Hide Again</button>
       <button type="button" class="transcript-guided-btn" data-guided-reveal-all>Reveal All</button>
-      <button type="button" class="transcript-guided-btn" data-guided-hide-bar>Hide Bar</button>
       <button type="button" class="transcript-guided-btn transcript-guided-btn-ghost" data-guided-exit>Exit</button>
       <label class="transcript-guided-speed-wrap" for="guided-speed">
         <span>Speed</span>
@@ -207,15 +199,6 @@ let revealCounter = 0;
       </label>
     </div>
   </div>
-
-  <button
-    type="button"
-    class="transcript-guided-show-chip"
-    data-guided-show-bar
-    hidden
-  >
-    Show Reading Bar
-  </button>
 </section>
 
 <script is:inline>
@@ -224,7 +207,6 @@ let revealCounter = 0;
     const controls = root.querySelector("[data-transcript-controls]");
     const modeButtons = [...root.querySelectorAll("[data-mode-btn]")];
     const guidedStart = root.querySelector("[data-guided-start]");
-    const guidedVisibility = root.querySelector("[data-guided-visibility]");
     const guidedStatus = root.querySelector("[data-guided-status]");
     const guidedDock = root.querySelector("[data-guided-dock]");
     const guidedProgress = root.querySelector("[data-guided-progress]");
@@ -233,8 +215,6 @@ let revealCounter = 0;
     const guidedPause = root.querySelector("[data-guided-pause]");
     const guidedReset = root.querySelector("[data-guided-reset]");
     const guidedRevealAll = root.querySelector("[data-guided-reveal-all]");
-    const guidedHideBar = root.querySelector("[data-guided-hide-bar]");
-    const guidedShowBar = root.querySelector("[data-guided-show-bar]");
     const guidedExit = root.querySelector("[data-guided-exit]");
     const guidedSpeed = root.querySelector("[data-guided-speed]");
     const revealItems = [...root.querySelectorAll("[data-reveal-index]")]
@@ -242,8 +222,6 @@ let revealCounter = 0;
 
     let mode = "study";
     let guidedOn = false;
-    let guidedUiVisible = true;
-    let guidedBarVisible = true;
     let guidedCursor = 0;
     let autoTimer = null;
     let autoMs = Number(guidedSpeed?.value || 6000);
@@ -251,17 +229,6 @@ let revealCounter = 0;
       revealItems.map((item) => Number(item.dataset.revealIndex || 0))
     )].sort((a, b) => a - b);
     const totalSteps = stepIndexes.length;
-
-    try {
-      const saved = window.localStorage.getItem("ovi-guided-ui-visible");
-      if (saved === "0") guidedUiVisible = false;
-    } catch (_) {}
-
-    const persistGuidedUiVisibility = () => {
-      try {
-        window.localStorage.setItem("ovi-guided-ui-visible", guidedUiVisible ? "1" : "0");
-      } catch (_) {}
-    };
 
     const stopAuto = () => {
       if (autoTimer) {
@@ -310,31 +277,22 @@ let revealCounter = 0;
     const updateGuidedUi = () => {
       const canGuide = mode === "study" && totalSteps > 1;
       if (guidedStart) {
-        guidedStart.hidden = !guidedUiVisible || guidedOn;
+        guidedStart.hidden = mode !== "study";
         guidedStart.disabled = !canGuide;
         if (!canGuide) {
-          guidedStart.textContent = "Guided Reading Unavailable";
-        } else if (guidedOn) {
-          guidedStart.textContent = "Exit Guided Reading";
+          guidedStart.textContent = "Reading Mode Unavailable";
         } else {
-          guidedStart.textContent = "Start Guided Reading";
+          guidedStart.textContent = guidedOn ? "Stop Reading Mode" : "Start Reading Mode";
         }
-      }
-      if (guidedVisibility) {
-        guidedVisibility.hidden = !canGuide;
-        guidedVisibility.disabled = guidedOn;
-        guidedVisibility.textContent = guidedUiVisible ? "Hide Guided UI" : "Show Guided UI";
       }
 
       if (!canGuide || !guidedOn) {
         root.dataset.guided = "off";
-        root.dataset.guidedDock = "off";
         applyVisibility();
         stopAuto();
         if (guidedDock) guidedDock.hidden = true;
-        if (guidedShowBar) guidedShowBar.hidden = true;
         if (guidedStatus) {
-          guidedStatus.hidden = mode === "study" && !guidedUiVisible;
+          guidedStatus.hidden = false;
           guidedStatus.textContent = mode === "listen"
             ? "Listen mode: no word popups or inline checks."
             : "Study mode: full transcript visible.";
@@ -344,9 +302,7 @@ let revealCounter = 0;
 
       applyVisibility();
       root.dataset.guided = "on";
-      root.dataset.guidedDock = guidedBarVisible ? "on" : "off";
-      if (guidedDock) guidedDock.hidden = !guidedBarVisible;
-      if (guidedShowBar) guidedShowBar.hidden = guidedBarVisible;
+      if (guidedDock) guidedDock.hidden = false;
       if (guidedStatus) guidedStatus.hidden = false;
       const completed = guidedCursor >= stepIndexes[stepIndexes.length - 1];
 
@@ -360,8 +316,8 @@ let revealCounter = 0;
       }
       if (guidedStatus) {
         guidedStatus.textContent = completed
-          ? `Guided reading complete (${totalSteps}/${totalSteps}).`
-          : `Guided reading: part ${Math.min(guidedCursor + 1, totalSteps)} of ${totalSteps}.`;
+          ? `Reading mode complete (${totalSteps}/${totalSteps}).`
+          : `Reading mode: part ${Math.min(guidedCursor + 1, totalSteps)} of ${totalSteps}.`;
       }
     };
 
@@ -389,13 +345,11 @@ let revealCounter = 0;
         guidedOn = !guidedOn;
         if (guidedOn) {
           guidedCursor = 0;
-          guidedBarVisible = true;
           scrollToStep(guidedCursor);
         } else {
           stopAuto();
         }
         updateGuidedUi();
-        return;
       }
     });
 
@@ -425,13 +379,6 @@ let revealCounter = 0;
       updateGuidedUi();
     });
 
-    guidedVisibility?.addEventListener("click", () => {
-      if (guidedOn) return;
-      guidedUiVisible = !guidedUiVisible;
-      persistGuidedUiVisibility();
-      updateGuidedUi();
-    });
-
     guidedReset?.addEventListener("click", () => {
       if (!guidedOn) {
         guidedOn = true;
@@ -445,7 +392,6 @@ let revealCounter = 0;
     guidedRevealAll?.addEventListener("click", () => {
       if (!guidedOn) {
         guidedOn = true;
-        guidedBarVisible = true;
       }
       stopAuto();
       guidedCursor = stepIndexes[stepIndexes.length - 1] ?? 0;
@@ -453,31 +399,15 @@ let revealCounter = 0;
       scrollToStep(guidedCursor);
     });
 
-    guidedHideBar?.addEventListener("click", () => {
-      if (!guidedOn) return;
-      guidedBarVisible = false;
-      stopAuto();
-      updateGuidedUi();
-    });
-
-    guidedShowBar?.addEventListener("click", () => {
-      if (!guidedOn) return;
-      guidedBarVisible = true;
-      updateGuidedUi();
-    });
-
     guidedExit?.addEventListener("click", () => {
       guidedOn = false;
-      guidedBarVisible = true;
       stopAuto();
       updateGuidedUi();
     });
 
     guidedSpeed?.addEventListener("change", () => {
       autoMs = Number(guidedSpeed.value || 6000);
-      if (autoTimer) {
-        stopAuto();
-      }
+      if (autoTimer) stopAuto();
       updateGuidedUi();
     });
 
@@ -491,7 +421,6 @@ let revealCounter = 0;
       const word = target.dataset.word;
       if (!word || word.length < 2) return;
 
-      // Extract sentence context from parent paragraph
       const paragraph = target.closest(".transcript-paragraph");
       let sentence = "";
       if (paragraph) {
