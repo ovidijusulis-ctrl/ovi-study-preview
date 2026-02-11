@@ -184,6 +184,7 @@ let revealCounter = 0;
       <button type="button" class="transcript-guided-btn" data-guided-next>Next Part</button>
       <button type="button" class="transcript-guided-btn" data-guided-auto>Auto</button>
       <button type="button" class="transcript-guided-btn" data-guided-pause hidden>Pause</button>
+      <button type="button" class="transcript-guided-btn" data-guided-reset>Hide Again</button>
       <button type="button" class="transcript-guided-btn" data-guided-reveal-all>Reveal All</button>
       <button type="button" class="transcript-guided-btn transcript-guided-btn-ghost" data-guided-exit>Exit</button>
       <label class="transcript-guided-speed-wrap" for="guided-speed">
@@ -210,6 +211,7 @@ let revealCounter = 0;
     const guidedNext = root.querySelector("[data-guided-next]");
     const guidedAuto = root.querySelector("[data-guided-auto]");
     const guidedPause = root.querySelector("[data-guided-pause]");
+    const guidedReset = root.querySelector("[data-guided-reset]");
     const guidedRevealAll = root.querySelector("[data-guided-reveal-all]");
     const guidedExit = root.querySelector("[data-guided-exit]");
     const guidedSpeed = root.querySelector("[data-guided-speed]");
@@ -373,6 +375,16 @@ let revealCounter = 0;
     guidedPause?.addEventListener("click", () => {
       stopAuto();
       updateGuidedUi();
+    });
+
+    guidedReset?.addEventListener("click", () => {
+      if (!guidedOn) {
+        guidedOn = true;
+      }
+      stopAuto();
+      guidedCursor = 0;
+      updateGuidedUi();
+      scrollToStep(guidedCursor);
     });
 
     guidedRevealAll?.addEventListener("click", () => {

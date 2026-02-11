@@ -240,7 +240,7 @@ a:focus-visible {
 }
 
 .transcript-root[data-guided="on"] {
-  padding-bottom: 118px;
+  padding-bottom: 104px;
 }
 
 .transcript-controls {
@@ -369,10 +369,10 @@ a:focus-visible {
   border: 1px solid var(--border-light);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
-  padding: 10px 12px;
+  padding: 8px 10px;
   z-index: 50;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .transcript-guided-progress {
@@ -385,7 +385,9 @@ a:focus-visible {
   display: flex;
   gap: 8px;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .transcript-guided-btn {
@@ -415,6 +417,7 @@ a:focus-visible {
   gap: 6px;
   font-size: 12px;
   color: var(--text-light);
+  flex: 0 0 auto;
 }
 
 .transcript-guided-speed {
@@ -839,31 +842,54 @@ a:focus-visible {
 
 @media (max-width: 680px) {
   .transcript-root[data-guided="on"] {
-    padding-bottom: 160px;
+    padding-bottom: 84px;
   }
 
   .transcript-guided-dock {
-    width: calc(100vw - 16px);
+    width: calc(100vw - 12px);
     bottom: max(8px, env(safe-area-inset-bottom));
-    padding: 10px;
+    padding: 6px 8px;
+    gap: 5px;
+  }
+
+  .transcript-guided-progress {
+    font-size: 11px;
   }
 
   .transcript-guided-actions {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
     gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .transcript-guided-actions::-webkit-scrollbar {
+    display: none;
   }
 
   .transcript-guided-btn {
-    width: 100%;
-    padding: 8px 6px;
-    font-size: 12px;
+    width: auto;
+    flex: 0 0 auto;
+    padding: 6px 8px;
+    font-size: 11px;
+    border-radius: 7px;
   }
 
   .transcript-guided-speed-wrap {
-    grid-column: 1 / -1;
     margin-left: 0;
-    justify-content: flex-end;
+    justify-content: flex-start;
+    gap: 4px;
+  }
+
+  .transcript-guided-speed-wrap span {
+    display: none;
+  }
+
+  .transcript-guided-speed {
+    font-size: 11px;
+    padding: 4px 6px;
   }
 
   .feedback-row {
