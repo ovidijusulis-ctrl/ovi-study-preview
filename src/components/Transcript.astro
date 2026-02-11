@@ -269,18 +269,22 @@ let revealCounter = 0;
       if (mode === "listen") {
         guidedOn = false;
         stopAuto();
+        if (guidedDock) {
+          guidedDock.hidden = true;
+          guidedDock.style.display = "none";
+        }
       }
       updateGuidedUi();
     };
 
     const updateGuidedUi = () => {
-      const canGuide = mode === "study" && totalSteps > 1;
+      const canGuide = totalSteps > 1;
       if (guidedStart) {
         guidedStart.hidden = false;
         guidedStart.disabled = !canGuide;
         guidedStart.classList.toggle("is-active", guidedOn && canGuide);
         guidedStart.setAttribute("aria-pressed", guidedOn && canGuide ? "true" : "false");
-        if (!canGuide && mode === "study") {
+        if (!canGuide) {
           guidedStart.textContent = "Reading Mode Unavailable";
         } else {
           guidedStart.textContent = "Reading Mode";
@@ -291,7 +295,10 @@ let revealCounter = 0;
         root.dataset.guided = "off";
         applyVisibility();
         stopAuto();
-        if (guidedDock) guidedDock.hidden = true;
+        if (guidedDock) {
+          guidedDock.hidden = true;
+          guidedDock.style.display = "none";
+        }
         if (guidedStatus) {
           guidedStatus.hidden = false;
           guidedStatus.textContent = mode === "listen"
@@ -303,7 +310,10 @@ let revealCounter = 0;
 
       applyVisibility();
       root.dataset.guided = "on";
-      if (guidedDock) guidedDock.hidden = false;
+      if (guidedDock) {
+        guidedDock.hidden = false;
+        guidedDock.style.removeProperty("display");
+      }
       if (guidedStatus) guidedStatus.hidden = false;
       const completed = guidedCursor >= stepIndexes[stepIndexes.length - 1];
 
@@ -343,12 +353,24 @@ let revealCounter = 0;
       }
 
       if (event.target.closest("[data-guided-start]") && guidedStart && !guidedStart.disabled) {
-        guidedOn = !guidedOn;
+        if (guidedOn) {
+          guidedOn = false;
+          stopAuto();
+          if (guidedDock) {
+            guidedDock.hidden = true;
+            guidedDock.style.display = "none";
+          }
+          updateGuidedUi();
+          return;
+        }
+
+        if (mode === "listen") {
+          setMode("study");
+        }
+        guidedOn = true;
         if (guidedOn) {
           guidedCursor = 0;
           scrollToStep(guidedCursor);
-        } else {
-          stopAuto();
         }
         updateGuidedUi();
       }
@@ -403,6 +425,10 @@ let revealCounter = 0;
     guidedExit?.addEventListener("click", () => {
       guidedOn = false;
       stopAuto();
+      if (guidedDock) {
+        guidedDock.hidden = true;
+        guidedDock.style.display = "none";
+      }
       updateGuidedUi();
     });
 
