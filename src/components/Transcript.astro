@@ -195,6 +195,7 @@ let revealCounter = 0;
       <button type="button" class="transcript-guided-btn" data-guided-pause hidden>Pause</button>
       <button type="button" class="transcript-guided-btn" data-guided-reset>Hide Again</button>
       <button type="button" class="transcript-guided-btn" data-guided-reveal-all>Reveal All</button>
+      <button type="button" class="transcript-guided-btn" data-guided-hide-bar>Hide Bar</button>
       <button type="button" class="transcript-guided-btn transcript-guided-btn-ghost" data-guided-exit>Exit</button>
       <label class="transcript-guided-speed-wrap" for="guided-speed">
         <span>Speed</span>
@@ -206,6 +207,15 @@ let revealCounter = 0;
       </label>
     </div>
   </div>
+
+  <button
+    type="button"
+    class="transcript-guided-show-chip"
+    data-guided-show-bar
+    hidden
+  >
+    Show Reading Bar
+  </button>
 </section>
 
 <script is:inline>
@@ -223,6 +233,8 @@ let revealCounter = 0;
     const guidedPause = root.querySelector("[data-guided-pause]");
     const guidedReset = root.querySelector("[data-guided-reset]");
     const guidedRevealAll = root.querySelector("[data-guided-reveal-all]");
+    const guidedHideBar = root.querySelector("[data-guided-hide-bar]");
+    const guidedShowBar = root.querySelector("[data-guided-show-bar]");
     const guidedExit = root.querySelector("[data-guided-exit]");
     const guidedSpeed = root.querySelector("[data-guided-speed]");
     const revealItems = [...root.querySelectorAll("[data-reveal-index]")]
@@ -231,6 +243,7 @@ let revealCounter = 0;
     let mode = "study";
     let guidedOn = false;
     let guidedUiVisible = true;
+    let guidedBarVisible = true;
     let guidedCursor = 0;
     let autoTimer = null;
     let autoMs = Number(guidedSpeed?.value || 6000);
@@ -315,9 +328,11 @@ let revealCounter = 0;
 
       if (!canGuide || !guidedOn) {
         root.dataset.guided = "off";
+        root.dataset.guidedDock = "off";
         applyVisibility();
         stopAuto();
         if (guidedDock) guidedDock.hidden = true;
+        if (guidedShowBar) guidedShowBar.hidden = true;
         if (guidedStatus) {
           guidedStatus.hidden = mode === "study" && !guidedUiVisible;
           guidedStatus.textContent = mode === "listen"
@@ -329,7 +344,9 @@ let revealCounter = 0;
 
       applyVisibility();
       root.dataset.guided = "on";
-      if (guidedDock) guidedDock.hidden = false;
+      root.dataset.guidedDock = guidedBarVisible ? "on" : "off";
+      if (guidedDock) guidedDock.hidden = !guidedBarVisible;
+      if (guidedShowBar) guidedShowBar.hidden = guidedBarVisible;
       if (guidedStatus) guidedStatus.hidden = false;
       const completed = guidedCursor >= stepIndexes[stepIndexes.length - 1];
 
@@ -372,6 +389,7 @@ let revealCounter = 0;
         guidedOn = !guidedOn;
         if (guidedOn) {
           guidedCursor = 0;
+          guidedBarVisible = true;
           scrollToStep(guidedCursor);
         } else {
           stopAuto();
@@ -427,6 +445,7 @@ let revealCounter = 0;
     guidedRevealAll?.addEventListener("click", () => {
       if (!guidedOn) {
         guidedOn = true;
+        guidedBarVisible = true;
       }
       stopAuto();
       guidedCursor = stepIndexes[stepIndexes.length - 1] ?? 0;
@@ -434,8 +453,22 @@ let revealCounter = 0;
       scrollToStep(guidedCursor);
     });
 
+    guidedHideBar?.addEventListener("click", () => {
+      if (!guidedOn) return;
+      guidedBarVisible = false;
+      stopAuto();
+      updateGuidedUi();
+    });
+
+    guidedShowBar?.addEventListener("click", () => {
+      if (!guidedOn) return;
+      guidedBarVisible = true;
+      updateGuidedUi();
+    });
+
     guidedExit?.addEventListener("click", () => {
       guidedOn = false;
+      guidedBarVisible = true;
       stopAuto();
       updateGuidedUi();
     });
