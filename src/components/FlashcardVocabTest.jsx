@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { deck, loadDeck } from "../stores/deckStore.js";
 
 const MIN_CARDS = 5;
@@ -122,6 +122,7 @@ export default function FlashcardVocabTest({ episodeId = "" }) {
   const [selected, setSelected] = useState("");
   const [answered, setAnswered] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const completionReportedRef = useRef(false);
 
   useEffect(() => {
     if (episodeId) loadDeck(episodeId);
@@ -146,6 +147,12 @@ export default function FlashcardVocabTest({ episodeId = "" }) {
     const generated = buildQuestions(cards);
     if (generated.length === 0) return;
 
+    window.dispatchEvent(
+      new CustomEvent("episode-behavior", {
+        detail: { metric: "vocabTestStarts", amount: 1 },
+      }),
+    );
+
     setItems(generated);
     setCurrent(0);
     setScore(0);
@@ -153,6 +160,7 @@ export default function FlashcardVocabTest({ episodeId = "" }) {
     setAnswered(false);
     setFeedback(null);
     setStarted(true);
+    completionReportedRef.current = false;
   };
 
   if (!unlocked) {
@@ -188,6 +196,17 @@ export default function FlashcardVocabTest({ episodeId = "" }) {
 
   const total = items.length;
   const isFinished = current >= total;
+
+  useEffect(() => {
+    if (!started || !isFinished || total === 0) return;
+    if (completionReportedRef.current) return;
+    completionReportedRef.current = true;
+    window.dispatchEvent(
+      new CustomEvent("episode-behavior", {
+        detail: { metric: "vocabTestCompletions", amount: 1 },
+      }),
+    );
+  }, [started, isFinished, total]);
 
   if (isFinished) {
     const percent = Math.round((score / total) * 100);

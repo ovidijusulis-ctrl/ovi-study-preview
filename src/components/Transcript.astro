@@ -225,6 +225,13 @@ let revealCounter = 0;
     let guidedCursor = 0;
     let autoTimer = null;
     let autoMs = Number(guidedSpeed?.value || 8000);
+    const emitBehavior = (metric, amount = 1) => {
+      window.dispatchEvent(
+        new CustomEvent("episode-behavior", {
+          detail: { metric, amount },
+        }),
+      );
+    };
     const stepIndexes = [...new Set(
       revealItems.map((item) => Number(item.dataset.revealIndex || 0))
     )].sort((a, b) => a - b);
@@ -369,6 +376,7 @@ let revealCounter = 0;
           setMode("study");
         }
         guidedOn = true;
+        emitBehavior("readingModeStarts", 1);
         if (guidedOn) {
           guidedCursor = 0;
           scrollToStep(guidedCursor);
@@ -385,9 +393,11 @@ let revealCounter = 0;
     guidedAuto?.addEventListener("click", () => {
       if (!guidedOn) {
         guidedOn = true;
+        emitBehavior("readingModeStarts", 1);
         guidedCursor = 0;
         scrollToStep(guidedCursor);
       }
+      emitBehavior("readingAutoStarts", 1);
       stopAuto();
       autoTimer = window.setInterval(() => {
         const didAdvance = advanceGuided();

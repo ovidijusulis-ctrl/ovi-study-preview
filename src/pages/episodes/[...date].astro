@@ -31,7 +31,8 @@ const pageTitle = `${episode.topic} | Ovi English School`;
 const base = import.meta.env.BASE_URL;
 const pdfUrl = episode?.urls?.pdf || "";
 const headerSummarySource = String(
-  episode.summary
+  episode.summaryShort
+    || episode.summary
     || episode.sections?.newsStory
     || ""
 ).replace(/\s+/g, " ").trim();
@@ -67,13 +68,16 @@ const ldJson = {
 };
 ---
 
-<Layout title={pageTitle} description={episode.summary}>
+<Layout title={pageTitle} description={episode.summaryShort || episode.summary}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(ldJson)}></script>
 
-  <article>
+  <article data-episode-id={episode.id || `episode-${episode.slug || episode.date || ""}`}>
     <section class="card episode-header">
       <a class="back-link" href={base}>Back to Archive</a>
       <h1>{episode.topic}</h1>
+      {episode?.quality?.qualityPass && (
+        <p class="muted" style="margin: 0 0 6px; font-size: 12px;">Quality checked lesson</p>
+      )}
       <p>{shortSummary || "Short story summary not available."}</p>
     </section>
 
@@ -155,4 +159,179 @@ const ldJson = {
       </ul>
     </section>
   </article>
+
+  <script
+    is:inline
+    define:vars={{ episodeId: episode.id || `episode-${episode.slug || episode.date || ""}` }}
+  >
+    (() => {
+      if (typeof window === "undefined" || !episodeId) return;
+
+      const PREFIX = "episode-behavior-";
+      const KEY = `${PREFIX}${episodeId}`;
+      const VALID_METRICS = new Set([
+        "opens",
+        "scrollDepthMax",
+        "completions",
+        "flashcardAdds",
+        "vocabTestStarts",
+        "vocabTestCompletions",
+        "readingModeStarts",
+        "readingAutoStarts",
+        "listeningStarts",
+        "activeSeconds",
+      ]);
+
+      const defaults = () => ({
+        opens: 0,
+        scrollDepthMax: 0,
+        completions: 0,
+        flashcardAdds: 0,
+        vocabTestStarts: 0,
+        vocabTestCompletions: 0,
+        readingModeStarts: 0,
+        readingAutoStarts: 0,
+        listeningStarts: 0,
+        activeSeconds: 0,
+        updatedAt: Date.now(),
+        version: 1,
+      });
+
+      const readState = () => {
+        try {
+          const raw = localStorage.getItem(KEY);
+          if (!raw) return defaults();
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== "object") return defaults();
+          return { ...defaults(), ...parsed };
+        } catch (_err) {
+          return defaults();
+        }
+      };
+
+      let stateCache = readState();
+
+      const writeState = (next) => {
+        const payload = { ...defaults(), ...next, updatedAt: Date.now(), version: 1 };
+        stateCache = payload;
+        try {
+          localStorage.setItem(KEY, JSON.stringify(payload));
+        } catch (_err) {
+          // ignore localStorage failures
+        }
+        window.dispatchEvent(
+          new CustomEvent("episode-behavior-updated", {
+            detail: { episodeId, state: payload },
+          }),
+        );
+      };
+
+      const bump = (metric, amount = 1) => {
+        if (!VALID_METRICS.has(metric)) return;
+        const current = Number(stateCache[metric] || 0);
+        const next = Math.max(0, current + Number(amount || 0));
+        if (next === current) return;
+        writeState({ ...stateCache, [metric]: next });
+      };
+
+      const setMax = (metric, value) => {
+        if (!VALID_METRICS.has(metric)) return;
+        const current = Number(stateCache[metric] || 0);
+        const next = Math.max(current, Number(value || 0));
+        if (next === current) return;
+        writeState({ ...stateCache, [metric]: next });
+      };
+
+      bump("opens", 1);
+
+      let completedThisVisit = false;
+      let listeningLogged = false;
+      let visibleStartedAt = document.visibilityState === "visible" ? Date.now() : 0;
+      let activeMsBuffer = 0;
+
+      const flushActiveSeconds = () => {
+        if (visibleStartedAt > 0) {
+          activeMsBuffer += Date.now() - visibleStartedAt;
+          visibleStartedAt = Date.now();
+        }
+        const wholeSeconds = Math.floor(activeMsBuffer / 1000);
+        if (wholeSeconds > 0) {
+          activeMsBuffer -= wholeSeconds * 1000;
+          bump("activeSeconds", wholeSeconds);
+        }
+      };
+
+      const computeScrollDepth = () => {
+        const doc = document.documentElement;
+        const scrollable = Math.max(0, (doc?.scrollHeight || 0) - window.innerHeight);
+        if (scrollable <= 0) return 100;
+        return Math.round((window.scrollY / scrollable) * 100);
+      };
+
+      let scrollTicking = false;
+      const onScroll = () => {
+        if (scrollTicking) return;
+        scrollTicking = true;
+        window.requestAnimationFrame(() => {
+          scrollTicking = false;
+          const depth = Math.max(0, Math.min(100, computeScrollDepth()));
+          setMax("scrollDepthMax", depth);
+          if (!completedThisVisit && depth >= 80) {
+            completedThisVisit = true;
+            bump("completions", 1);
+          }
+        });
+      };
+
+      const onVisibilityChange = () => {
+        if (document.visibilityState === "hidden") {
+          if (visibleStartedAt > 0) {
+            activeMsBuffer += Date.now() - visibleStartedAt;
+            visibleStartedAt = 0;
+          }
+          flushActiveSeconds();
+          return;
+        }
+        visibleStartedAt = Date.now();
+      };
+
+      const onPageHide = () => {
+        if (visibleStartedAt > 0) {
+          activeMsBuffer += Date.now() - visibleStartedAt;
+          visibleStartedAt = 0;
+        }
+        flushActiveSeconds();
+      };
+
+      const nativeAudio = document.querySelector(".audio-player audio");
+      const onNativePlay = () => {
+        if (listeningLogged) return;
+        listeningLogged = true;
+        bump("listeningStarts", 1);
+      };
+      nativeAudio?.addEventListener("play", onNativePlay);
+
+      const platformLinks = [...document.querySelectorAll(".audio-player a[href]")];
+      const onPlatformClick = (event) => {
+        const href = String(event.currentTarget?.getAttribute?.("href") || "").toLowerCase();
+        if (!href) return;
+        if (!href.includes("youtube.com") && !href.includes("spotify.com")) return;
+        bump("listeningStarts", 1);
+      };
+      platformLinks.forEach((link) => link.addEventListener("click", onPlatformClick));
+
+      const onBehaviorEvent = (event) => {
+        const metric = String(event?.detail?.metric || "");
+        const amount = Number(event?.detail?.amount || 1);
+        if (!VALID_METRICS.has(metric)) return;
+        if (!Number.isFinite(amount) || amount <= 0) return;
+        bump(metric, amount);
+      };
+      window.addEventListener("episode-behavior", onBehaviorEvent);
+
+      window.addEventListener("scroll", onScroll, { passive: true });
+      document.addEventListener("visibilitychange", onVisibilityChange);
+      window.addEventListener("pagehide", onPageHide);
+    })();
+  </script>
 </Layout>

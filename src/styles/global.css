@@ -53,6 +53,10 @@ a:hover {
 }
 
 .header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
   padding: 20px 16px;
 }
 
@@ -70,6 +74,33 @@ a:hover {
   margin: 4px 0 0;
   color: var(--text-light);
   font-size: 14px;
+}
+
+.assist-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  padding: 3px;
+  background: #fff;
+}
+
+.assist-lang-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-light);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 6px 9px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.assist-lang-btn.is-active {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--primary-blue);
 }
 
 .page-content {
@@ -527,6 +558,26 @@ a:focus-visible {
   font-style: italic;
 }
 
+.vocab-translation-box {
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  background: rgba(37, 99, 235, 0.07);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 8px 0 6px;
+  display: grid;
+  gap: 4px;
+}
+
+.vocab-translation-row {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dark);
+}
+
+.vocab-translation-row strong {
+  color: var(--primary-blue);
+}
+
 /* Voice playback button (small, round) */
 .voice-btn {
   background: none;
@@ -838,6 +889,15 @@ a:focus-visible {
 }
 
 @media (max-width: 680px) {
+  .header-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .assist-lang {
+    width: fit-content;
+  }
+
   .transcript-mode-group {
     width: 100%;
   }

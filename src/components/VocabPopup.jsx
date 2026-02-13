@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from "preact/hooks";
 import { deck, addCard, isInDeck } from "../stores/deckStore.js";
 import { lookupWord } from "../utils/dictionary.js";
+import { assistLanguage, loadAssistLanguage } from "../stores/assistLanguage.js";
+import { translateText } from "../utils/translator.js";
 
 /**
  * Speak text using the Web Speech API.
@@ -22,9 +24,15 @@ export default function VocabPopup() {
   const [loading, setLoading] = useState(false);
   const [addedFeedback, setAddedFeedback] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [translations, setTranslations] = useState({
+    word: "",
+    definition: "",
+  });
+  const [translationLoading, setTranslationLoading] = useState(false);
 
   // Subscribe to deck signal so button state re-renders
   const deckCards = deck.value;
+  const selectedLanguage = assistLanguage.value;
 
   // Close popup
   const close = useCallback(() => {
@@ -32,7 +40,13 @@ export default function VocabPopup() {
     setLookup(null);
     setLoading(false);
     setSpeaking(false);
+    setTranslations({ word: "", definition: "" });
+    setTranslationLoading(false);
     window.speechSynthesis?.cancel();
+  }, []);
+
+  useEffect(() => {
+    loadAssistLanguage();
   }, []);
 
   useEffect(() => {
@@ -113,6 +127,51 @@ export default function VocabPopup() {
   const phonetic = lookup?.phonetic || "";
   const partOfSpeech = lookup?.partOfSpeech || "";
   const example = lookup?.example || "";
+  const languageLabel = selectedLanguage === "ja" ? "Japanese" : "Spanish";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!entry || selectedLanguage === "en") {
+      setTranslations({ word: "", definition: "" });
+      setTranslationLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const sourceDefinition = definition || rawDefinition || "";
+
+    setTranslationLoading(true);
+    Promise.all([
+      translateText(entry.word, selectedLanguage),
+      sourceDefinition ? translateText(sourceDefinition, selectedLanguage) : Promise.resolve(""),
+    ])
+      .then(([wordTranslated, definitionTranslated]) => {
+        if (cancelled) return;
+        setTranslations({
+          word: wordTranslated || "",
+          definition: definitionTranslated || "",
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTranslations({ word: "", definition: "" });
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setTranslationLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    entry?.word,
+    selectedLanguage,
+    definition,
+    rawDefinition,
+  ]);
 
   const handleAdd = () => {
     const success = addCard({
@@ -124,6 +183,11 @@ export default function VocabPopup() {
       example: example,
     });
     if (success) {
+      window.dispatchEvent(
+        new CustomEvent("episode-behavior", {
+          detail: { metric: "flashcardAdds", amount: 1 },
+        }),
+      );
       setAddedFeedback(true);
       setTimeout(() => setAddedFeedback(false), 1500);
     }
@@ -194,6 +258,37 @@ export default function VocabPopup() {
           <p class="muted" style={{ fontSize: "13px", marginBottom: "6px" }}>
             Definition not found in dictionary.
           </p>
+        )}
+
+        {selectedLanguage !== "en" && (
+          <div class="vocab-translation-box">
+            <p class="vocab-translation-row">
+              <strong>{languageLabel} assist</strong>
+            </p>
+            {translationLoading ? (
+              <p class="vocab-loading" style={{ margin: 0 }}>
+                Translating...
+              </p>
+            ) : (
+              <>
+                {translations.word && (
+                  <p class="vocab-translation-row">
+                    <strong>Word:</strong> {translations.word}
+                  </p>
+                )}
+                {translations.definition && (
+                  <p class="vocab-translation-row">
+                    <strong>Meaning:</strong> {translations.definition}
+                  </p>
+                )}
+                {!translations.word && !translations.definition && (
+                  <p class="muted" style={{ fontSize: "13px", margin: 0 }}>
+                    Translation unavailable right now.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
         )}
 
         {/* Sentence context from episode */}

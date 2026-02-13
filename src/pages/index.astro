@@ -30,6 +30,7 @@ const episodes = episodeFiles
     <div class="archive-sort" role="tablist" aria-label="Sort lessons">
       <button type="button" class="archive-sort-btn is-active" data-sort-btn="newest">Newest</button>
       <button type="button" class="archive-sort-btn" data-sort-btn="popular">Popular</button>
+      <button type="button" class="archive-sort-btn" data-sort-btn="culture">Culture/Global</button>
     </div>
   </section>
 
@@ -41,6 +42,10 @@ const episodes = episodeFiles
           data-date={episode.date || ""}
           data-slug={episode.slug || ""}
           data-episode-id={episode.id || ""}
+          data-category={episode.category || ""}
+          data-tags={Array.isArray(episode.tags) ? episode.tags.join("|") : ""}
+          data-topic={episode.topic || ""}
+          data-source={episode?.source?.name || ""}
         >
           <h2>
             <a href={`${base}episodes/${episode.slug}`}>{episode.topic}</a>
@@ -56,6 +61,7 @@ const episodes = episodeFiles
   const sortButtons = [...document.querySelectorAll("[data-sort-btn]")];
   const SORT_KEY = "episode-archive-sort-mode";
   const RATING_PREFIX = "episode-rating-";
+  const BEHAVIOR_PREFIX = "episode-behavior-";
 
   if (list && sortButtons.length > 0) {
     const cards = [...list.querySelectorAll(".episode-card")].map((el, index) => ({
@@ -64,6 +70,10 @@ const episodes = episodeFiles
       date: String(el.dataset.date || ""),
       slug: String(el.dataset.slug || ""),
       episodeId: String(el.dataset.episodeId || ""),
+      category: String(el.dataset.category || "").toLowerCase(),
+      tags: String(el.dataset.tags || "").toLowerCase(),
+      topic: String(el.dataset.topic || "").toLowerCase(),
+      source: String(el.dataset.source || "").toLowerCase(),
     }));
 
     const getDateValue = (dateString) => {
@@ -84,12 +94,105 @@ const episodes = episodeFiles
       }
     };
 
+    const getBehavior = (episodeId) => {
+      if (!episodeId) return {};
+      try {
+        const raw = localStorage.getItem(`${BEHAVIOR_PREFIX}${episodeId}`);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch (_err) {
+        return {};
+      }
+    };
+
+    const bounded = (value, min = 0, max = 9999) =>
+      Math.max(min, Math.min(max, Number(value || 0)));
+
     const popularityScore = (card) => {
       const rating = getSavedRating(card.episodeId); // 0..5
+      const behavior = getBehavior(card.episodeId);
+      const opens = bounded(behavior.opens, 0, 1000);
+      const completions = bounded(behavior.completions, 0, 1000);
+      const flashcardAdds = bounded(behavior.flashcardAdds, 0, 5000);
+      const vocabStarts = bounded(behavior.vocabTestStarts, 0, 1000);
+      const vocabCompletes = bounded(behavior.vocabTestCompletions, 0, 1000);
+      const readingStarts = bounded(behavior.readingModeStarts, 0, 1000);
+      const readingAutoStarts = bounded(behavior.readingAutoStarts, 0, 1000);
+      const listeningStarts = bounded(behavior.listeningStarts, 0, 1000);
+      const activeSeconds = bounded(behavior.activeSeconds, 0, 1e7);
       const ageMs = Math.max(0, Date.now() - getDateValue(card.date));
       const ageDays = ageMs / (1000 * 60 * 60 * 24);
-      const freshness = Math.max(0, 30 - ageDays) / 6; // up to +5
-      return rating * 20 + freshness;
+      const freshness = Math.max(0, 21 - ageDays) * 0.4; // up to +8.4
+
+      // Weighted signal mix: rating + meaningful behavior.
+      const ratingScore = rating * 18; // up to 90
+      const completionScore = Math.min(20, completions * 6);
+      const flashcardScore = Math.min(16, flashcardAdds * 1.6);
+      const vocabScore = Math.min(18, vocabStarts * 2 + vocabCompletes * 3);
+      const readingScore = Math.min(10, readingStarts * 2 + readingAutoStarts);
+      const listeningScore = Math.min(8, listeningStarts * 2);
+      const activeScore = Math.min(14, (activeSeconds / 60) * 2);
+      const revisitScore = Math.min(10, Math.max(0, opens - 1) * 2.5);
+
+      return (
+        ratingScore
+        + completionScore
+        + flashcardScore
+        + vocabScore
+        + readingScore
+        + listeningScore
+        + activeScore
+        + revisitScore
+        + freshness
+      );
+    };
+
+    const countMatches = (text, terms) => {
+      const sourceText = String(text || "");
+      let score = 0;
+      for (const term of terms) {
+        const pattern = new RegExp(`\\b${term}\\b`, "gi");
+        const matches = sourceText.match(pattern);
+        if (matches) score += matches.length;
+      }
+      return score;
+    };
+
+    const CULTURE_TERMS = [
+      "culture", "cultural", "tradition", "traditional", "festival", "ritual",
+      "food", "cuisine", "travel", "heritage", "history", "language", "art", "music"
+    ];
+    const GLOBAL_TERMS = [
+      "global", "world", "worldwide", "international", "japan", "korea", "india", "brazil",
+      "mexico", "china", "africa", "europe", "asia", "latin", "turkey", "thailand", "italy"
+    ];
+    const VIRAL_TERMS = [
+      "viral", "trending", "record", "surprising", "shocking", "breakthrough", "breakthroughs"
+    ];
+    const LOCAL_NICHE_TERMS = [
+      "local league", "minor league", "county", "district", "club", "regional"
+    ];
+
+    const cultureScore = (card) => {
+      const text = `${card.category} ${card.tags} ${card.topic} ${card.source}`;
+      const cultureHits = countMatches(text, CULTURE_TERMS);
+      const globalHits = countMatches(text, GLOBAL_TERMS);
+      const viralHits = countMatches(text, VIRAL_TERMS);
+      const localNicheHits = countMatches(text, LOCAL_NICHE_TERMS);
+      const categoryBonus =
+        card.category === "lifestyle" ? 10 :
+          card.category === "global" ? 8 :
+            card.category === "science" || card.category === "tech" ? 6 : 0;
+
+      return (
+        categoryBonus
+        + cultureHits * 4
+        + globalHits * 3
+        + viralHits * 1.5
+        - localNicheHits * 4
+        + popularityScore(card) * 0.12
+      );
     };
 
     const comparators = {
@@ -104,6 +207,11 @@ const episodes = episodeFiles
         const byScore = popularityScore(b) - popularityScore(a);
         if (byScore !== 0) return byScore;
         return comparators.newest(a, b);
+      },
+      culture: (a, b) => {
+        const byCulture = cultureScore(b) - cultureScore(a);
+        if (byCulture !== 0) return byCulture;
+        return comparators.popular(a, b);
       },
     };
 
@@ -139,13 +247,19 @@ const episodes = episodeFiles
     window.addEventListener("episode-rating-updated", () => {
       const active = sortButtons.find((btn) => btn.classList.contains("is-active"));
       const mode = active?.dataset.sortBtn || "newest";
-      if (mode === "popular") render("popular");
+      if (mode === "popular" || mode === "culture") render(mode);
+    });
+
+    window.addEventListener("episode-behavior-updated", () => {
+      const active = sortButtons.find((btn) => btn.classList.contains("is-active"));
+      const mode = active?.dataset.sortBtn || "newest";
+      if (mode === "popular" || mode === "culture") render(mode);
     });
 
     let initialMode = "newest";
     try {
       const stored = localStorage.getItem(SORT_KEY);
-      if (stored === "newest" || stored === "popular") initialMode = stored;
+      if (stored === "newest" || stored === "popular" || stored === "culture") initialMode = stored;
     } catch (_err) {
       // ignore localStorage failures
     }

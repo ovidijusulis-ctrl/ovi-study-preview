@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import AssistLanguageToggle from "../components/AssistLanguageToggle.jsx";
 
 const {
   title = "Ovi English School",
@@ -21,8 +22,11 @@ const base = import.meta.env.BASE_URL;
   <body>
     <header class="site-header">
       <div class="container header-inner">
-        <a class="brand-link" href={base}>Ovi English School</a>
-        <p class="brand-subtitle">Interactive Study Site</p>
+        <div>
+          <a class="brand-link" href={base}>Ovi English School</a>
+          <p class="brand-subtitle">Interactive Study Site</p>
+        </div>
+        <AssistLanguageToggle client:load />
       </div>
     </header>
 
