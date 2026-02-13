@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "preact/hooks";
 import { deck, addCard, isInDeck } from "../stores/deckStore.js";
-import { lookupWord } from "../utils/dictionary.js";
 import { assistLanguage, loadAssistLanguage } from "../stores/assistLanguage.js";
 import { translateText } from "../utils/translator.js";
 
@@ -20,8 +19,6 @@ function speak(text, rate = 0.85) {
 
 export default function VocabPopup() {
   const [entry, setEntry] = useState(null);
-  const [lookup, setLookup] = useState(null); // dictionary API result
-  const [loading, setLoading] = useState(false);
   const [addedFeedback, setAddedFeedback] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [translations, setTranslations] = useState({
@@ -37,8 +34,6 @@ export default function VocabPopup() {
   // Close popup
   const close = useCallback(() => {
     setEntry(null);
-    setLookup(null);
-    setLoading(false);
     setSpeaking(false);
     setTranslations({ word: "", definition: "" });
     setTranslationLoading(false);
@@ -61,22 +56,21 @@ export default function VocabPopup() {
 
       const word = event.detail.word;
       const sentence = event.detail.sentence || "";
+      const definition = event.detail.definition || "";
+      const example = event.detail.example || "";
+      const contextMeaning = event.detail.contextMeaning || "";
+      const contextWhy = event.detail.contextWhy || "";
+      const simpleParaphrase = event.detail.simpleParaphrase || "";
 
-      setEntry({ word, sentence });
-      setLookup(null);
-      setLoading(true);
-
-      // Fire dictionary lookup in background (with timeout fallback)
-      const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 5000));
-      Promise.race([lookupWord(word), timeout])
-        .then((result) => {
-          setLookup(result);
-          setLoading(false);
-        })
-        .catch(() => {
-          setLookup(null);
-          setLoading(false);
-        });
+      setEntry({
+        word,
+        sentence,
+        definition,
+        example,
+        contextMeaning,
+        contextWhy,
+        simpleParaphrase,
+      });
     };
 
     const keyHandler = (event) => {
@@ -117,18 +111,6 @@ export default function VocabPopup() {
     };
   }, [close]);
 
-  if (!entry) return null;
-
-  const alreadyInDeck = isInDeck(entry.word);
-  const deckFull = deck.value.length >= 20;
-
-  const definition = lookup?.definition || "";
-  const rawDefinition = lookup?.rawDefinition || "";
-  const phonetic = lookup?.phonetic || "";
-  const partOfSpeech = lookup?.partOfSpeech || "";
-  const example = lookup?.example || "";
-  const languageLabel = selectedLanguage === "ja" ? "Japanese" : "Spanish";
-
   useEffect(() => {
     let cancelled = false;
 
@@ -140,7 +122,7 @@ export default function VocabPopup() {
       };
     }
 
-    const sourceDefinition = definition || rawDefinition || "";
+    const sourceDefinition = entry?.definition || "";
 
     setTranslationLoading(true);
     Promise.all([
@@ -168,10 +150,24 @@ export default function VocabPopup() {
     };
   }, [
     entry?.word,
+    entry?.definition,
     selectedLanguage,
-    definition,
-    rawDefinition,
   ]);
+
+  if (!entry) return null;
+
+  const alreadyInDeck = isInDeck(entry.word);
+  const deckFull = deck.value.length >= 20;
+
+  const definition = entry?.definition || "";
+  const rawDefinition = "";
+  const phonetic = "";
+  const partOfSpeech = "";
+  const example = entry?.example || entry?.sentence || "";
+  const contextMeaning = entry?.contextMeaning || "";
+  const contextWhy = entry?.contextWhy || "";
+  const simpleParaphrase = entry?.simpleParaphrase || "";
+  const languageLabel = selectedLanguage === "ja" ? "Japanese" : "Spanish";
 
   const handleAdd = () => {
     const success = addCard({
@@ -236,9 +232,7 @@ export default function VocabPopup() {
         {partOfSpeech && <span class="vocab-pos">{partOfSpeech}</span>}
 
         {/* Definition */}
-        {loading ? (
-          <p class="vocab-loading">Looking up definition...</p>
-        ) : definition ? (
+        {definition ? (
           <div style={{ marginBottom: "6px" }}>
             <p style={{ margin: "0 0 4px" }}>
               <strong>Simple meaning:</strong> {definition}
@@ -256,8 +250,31 @@ export default function VocabPopup() {
           </div>
         ) : (
           <p class="muted" style={{ fontSize: "13px", marginBottom: "6px" }}>
-            Definition not found in dictionary.
+            Definition not available for this word yet.
           </p>
+        )}
+
+        {(contextMeaning || contextWhy || simpleParaphrase) && (
+          <div class="vocab-translation-box" style={{ marginTop: "8px" }}>
+            <p class="vocab-translation-row">
+              <strong>In this sentence</strong>
+            </p>
+            {contextMeaning ? (
+              <p class="vocab-translation-row">
+                <strong>Meaning here:</strong> {contextMeaning}
+              </p>
+            ) : null}
+            {contextWhy ? (
+              <p class="vocab-translation-row">
+                <strong>Why used:</strong> {contextWhy}
+              </p>
+            ) : null}
+            {simpleParaphrase ? (
+              <p class="vocab-translation-row">
+                <strong>Simple sentence:</strong> {simpleParaphrase}
+              </p>
+            ) : null}
+          </div>
         )}
 
         {selectedLanguage !== "en" && (

@@ -86,7 +86,11 @@ const ldJson = {
       youtubeUrl={episode.urls?.youtube}
       spotifyUrl={episode.urls?.spotify}
     />
-    <Transcript transcript={episode.transcript} paragraphQuestions={episode.paragraphQuestions || []} />
+    <Transcript
+      transcript={episode.transcript}
+      paragraphQuestions={episode.paragraphQuestions || []}
+      vocabulary={episode.vocabulary || []}
+    />
     <FlashcardDeck client:load episodeId={episode.id} />
     <FlashcardVocabTest client:load episodeId={episode.id} />
 

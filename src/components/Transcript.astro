@@ -2,7 +2,7 @@
 import VocabPopup from "./VocabPopup.jsx";
 import InlineQuestion from "./InlineQuestion.jsx";
 
-const { transcript = "", paragraphQuestions = [] } = Astro.props;
+const { transcript = "", paragraphQuestions = [], vocabulary = [] } = Astro.props;
 
 const SECTION_MARKERS = [
   "OPENING",
@@ -67,6 +67,13 @@ function splitTranscriptSections(text) {
 const questionMap = new Map();
 for (const q of paragraphQuestions) {
   questionMap.set(q.paragraphIndex, q);
+}
+
+const vocabularyMap = new Map();
+for (const entry of vocabulary) {
+  const key = String(entry?.word || "").trim().toLowerCase();
+  if (!key || vocabularyMap.has(key)) continue;
+  vocabularyMap.set(key, entry);
 }
 
 const sections = splitTranscriptSections(transcript);
@@ -145,12 +152,18 @@ let revealCounter = 0;
 
                     const cleaned = token.replace(/[^a-zA-Z'-]/g, "");
                     if (cleaned.length < 2) return token;
+                    const vocabEntry = vocabularyMap.get(cleaned.toLowerCase());
 
                     return (
                       <button
                         type="button"
                         class="transcript-word"
                         data-word={cleaned}
+                        data-definition={vocabEntry?.definition || ""}
+                        data-example={vocabEntry?.example || ""}
+                        data-context-meaning={vocabEntry?.contextMeaning || ""}
+                        data-context-why={vocabEntry?.contextWhy || ""}
+                        data-simple-paraphrase={vocabEntry?.simpleParaphrase || ""}
                       >
                         {token}
                       </button>
@@ -458,6 +471,11 @@ let revealCounter = 0;
 
       const word = target.dataset.word;
       if (!word || word.length < 2) return;
+      const definition = target.dataset.definition || "";
+      const example = target.dataset.example || "";
+      const contextMeaning = target.dataset.contextMeaning || "";
+      const contextWhy = target.dataset.contextWhy || "";
+      const simpleParaphrase = target.dataset.simpleParaphrase || "";
 
       const paragraph = target.closest(".transcript-paragraph");
       let sentence = "";
@@ -475,6 +493,11 @@ let revealCounter = 0;
           detail: {
             word: word,
             sentence: sentence,
+            definition: definition,
+            example: example,
+            contextMeaning: contextMeaning,
+            contextWhy: contextWhy,
+            simpleParaphrase: simpleParaphrase,
           },
         }),
       );
