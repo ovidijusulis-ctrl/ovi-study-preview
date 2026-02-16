@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ovi English School</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Colors */
+            --deep-navy: #1a2f4a;
+            --warm-cream: #f8f5f0;
+            --soft-gold: #c9a962;
+            --muted-teal: #4a8b8b;
+            --charcoal: #2d2d2d;
+            --slate-gray: #6b7280;
+            --white: #ffffff;
+            
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 48px;
+            --space-2xl: 64px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background-color: var(--warm-cream);
+            color: var(--charcoal);
+            line-height: 1.7;
+            font-size: 18px;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            color: var(--deep-navy);
+        }
+        
+        /* Header */
+        header {
+            background: var(--white);
+            padding: var(--space-md) var(--space-xl);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(26, 47, 74, 0.06);
+        }
+        
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--deep-navy);
+            text-decoration: none;
+        }
+        
+        .logo span {
+            color: var(--soft-gold);
+        }
+        
+        nav a {
+            color: var(--slate-gray);
+            text-decoration: none;
+            margin-left: var(--space-lg);
+            font-weight: 400;
+            transition: color 0.2s;
+        }
+        
+        nav a:hover {
+            color: var(--deep-navy);
+        }
+        
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: var(--space-2xl) var(--space-md);
+            background: linear-gradient(135deg, var(--deep-navy) 0%, #2a4a6a 100%);
+            color: var(--white);
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            color: var(--white);
+            margin-bottom: var(--space-md);
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto var(--space-lg);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: var(--space-md) var(--space-xl);
+            background: var(--soft-gold);
+            color: var(--deep-navy);
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 4px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 169, 98, 0.4);
+        }
+        
+        /* Language Selector */
+        .lang-selector {
+            display: flex;
+            gap: var(--space-xs);
+        }
+        
+        .lang-btn {
+            padding: var(--space-xs) var(--space-sm);
+            border: 1px solid var(--slate-gray);
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--slate-gray);
+            transition: all 0.2s;
+        }
+        
+        .lang-btn.active {
+            background: var(--deep-navy);
+            color: var(--white);
+            border-color: var(--deep-navy);
+        }
+        
+        /* Episodes Grid */
+        .episodes-section {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: var(--space-2xl) var(--space-md);
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: var(--space-lg);
+            text-align: center;
+        }
+        
+        .episodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--space-lg);
+        }
+        
+        /* Episode Card */
+        .episode-card {
+            background: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        
+        .episode-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+        
+        .card-image {
+            height: 160px;
+            background: linear-gradient(135deg, var(--muted-teal) 0%, #6ab0b0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 3rem;
+        }
+        
+        .card-content {
+            padding: var(--space-md);
+        }
+        
+        .card-level {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--warm-cream);
+            color: var(--muted-teal);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .card-level.beginner {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .card-title {
+            font-size: 1.125rem;
+            margin-bottom: var(--space-sm);
+            line-height: 1.4;
+        }
+        
+        .card-desc {
+            font-size: 0.9rem;
+            color: var(--slate-gray);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: var(--space-xl);
+            color: var(--slate-gray);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(0,0,0,0.06);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="#" class="logo">Ovi English <span>School</span></a>
+        <nav>
+            <a href="#">Episodes</a>
+            <a href="#">About</a>
+            <div class="lang-selector">
+                <button class="lang-btn active">EN</button>
+                <button class="lang-btn">ES</button>
+                <button class="lang-btn">JP</button>
+            </div>
+        </nav>
+    </header>
+    
+    <section class="hero">
+        <h1>Learn English Through Stories</h1>
+        <p>Immerse yourself in engaging real-world stories. Comprehensible input that fits your busy life.</p>
+        <a href="#episodes" class="btn">Start Learning</a>
+    </section>
+    
+    <section class="episodes-section" id="episodes">
+        <h2 class="section-title">Latest Episodes</h2>
+        <div class="episodes-grid">
+            <!-- Card 1 -->
+            <article class="episode-card">
+                <div class="card-image">🦕</div>
+                <div class="card-content">
+                    <span class="card-level beginner">Beginner</span>
+                    <h3 class="card-title">A Football-Sized Creature That Lived 307 Million Years Ago</h3>
+                    <p class="card-desc">Discover the story of an ancient animal that may have been one of the first to eat plants on land.</p>
+                </div>
+            </article>
+            
+            <!-- Card 2 -->
+            <article class="episode-card">
+                <div class="card-image">📱</div>
+                <div class="card-content">
+                    <span class="card-level beginner">Beginner</span>
+                    <h3 class="card-title">T-Mobile Will Live Translate Phone Calls</h3>
+                    <p class="card-desc">AI technology is making it easier than ever to communicate across language barriers.</p>
+                </div>
+            </article>
+            
+            <!-- Card 3 -->
+            <article class="episode-card">
+                <div class="card-image">🏦</div>
+                <div class="card-content">
+                    <span class="card-level beginner">Beginner</span>
+                    <h3 class="card-title">People in Japan Scammed Out of Record ¥324 Billion</h3>
+                    <p class="card-desc">A look at the rising problem of fraud and how to protect yourself.</p>
+                </div>
+            </article>
+            
+            <!-- Card 4 -->
+            <article class="episode-card">
+                <div class="card-image">🐊</div>
+                <div class="card-content">
+                    <span class="card-level beginner">Beginner</span>
+                    <h3 class="card-title">Crocodile Museum in Nagoa Ash Shatb, Egypt</h3>
+                    <p class="card-desc">Explore a unique museum dedicated to ancient Egyptian crocodiles.</p>
+                </div>
+            </article>
+            
+            <!-- Card 5 -->
+            <article class="episode-card">
+                <div class="card-image">💻</div>
+                <div class="card-content">
+                    <span class="card-level beginner">Beginner</span>
+                    <h3 class="card-title">HP ZBook Ultra G1a Review</h3>
+                    <p class="card-desc">A deep dive into HP's latest business laptop - is it worth the price?</p>
+                </div>
+            </article>
+            
+            <!-- Card 6 -->
+            <article class="episode-card">
+                <div class="card-image">🎭</div>
+                <div class="card-content">
+                    <span class="card-level beginner">Beginner</span>
+                    <h3 class="card-title">The Biology and Culture of Rituals</h3>
+                    <p class="card-desc">Why do humans perform rituals? Science and culture collide in this fascinating episode.</p>
+                </div>
+            </article>
+        </div>
+    </section>
+    
+    <footer>
+        <p>© 2026 Ovi English School. Learn at your own pace.</p>
+    </footer>
+</body>
+</html>
