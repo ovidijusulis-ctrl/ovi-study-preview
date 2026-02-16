@@ -24,9 +24,18 @@ const episodes = episodeFiles
   });
 ---
 
-<Layout title="Ovi English School | Episode Archive">
-  <section class="card archive-toolbar">
-    <h1>Episode Archive</h1>
+<Layout title="Ovi English School | Learn English Through Stories">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Learn English Through Stories</h1>
+      <p>Immerse yourself in engaging real-world stories. Comprehensible input that fits your busy life.</p>
+      <a href="#episodes" class="btn btn-primary">Start Learning</a>
+    </div>
+  </section>
+
+  <section class="card archive-toolbar" id="episodes">
+    <h1>Latest Episodes</h1>
     <div class="archive-sort" role="tablist" aria-label="Sort lessons">
       <button type="button" class="archive-sort-btn is-active" data-sort-btn="newest">Newest</button>
       <button type="button" class="archive-sort-btn" data-sort-btn="popular">Popular</button>
@@ -36,25 +45,151 @@ const episodes = episodeFiles
 
   <section class="episode-list" id="episodeList">
     {
-      episodes.map((episode) => (
-        <article
-          class="card episode-card"
-          data-date={episode.date || ""}
-          data-slug={episode.slug || ""}
-          data-episode-id={episode.id || ""}
-          data-category={episode.category || ""}
-          data-tags={Array.isArray(episode.tags) ? episode.tags.join("|") : ""}
-          data-topic={episode.topic || ""}
-          data-source={episode?.source?.name || ""}
-        >
-          <h2>
-            <a href={`${base}episodes/${episode.slug}`}>{episode.topic}</a>
-          </h2>
-        </article>
-      ))
+      episodes.map((episode, index) => {
+        // Generate emoji thumbnail based on topic
+        const emojis = ['📰', '🏦', '📱', '🦕', '🐊', '💻', '🎭', '🚗', '🎮', '🌍', '🎵', '🔬'];
+        const thumbnail = emojis[index % emojis.length];
+        
+        return (
+          <article
+            class="card episode-card"
+            data-date={episode.date || ""}
+            data-slug={episode.slug || ""}
+            data-episode-id={episode.id || ""}
+            data-category={episode.category || ""}
+            data-tags={Array.isArray(episode.tags) ? episode.tags.join("|") : ""}
+            data-topic={episode.topic || ""}
+            data-source={episode?.source?.name || ""}
+          >
+            <div class="episode-thumbnail">{thumbnail}</div>
+            <div class="episode-content">
+              <span class="episode-level badge">Beginner</span>
+              <h2>
+                <a href={`${base}episodes/${episode.slug}`}>{episode.topic}</a>
+              </h2>
+              <p class="episode-date">{episode.date ? new Date(episode.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : ''}</p>
+            </div>
+          </article>
+        )
+      })
     }
   </section>
 </Layout>
+
+<style>
+  .hero {
+    background: linear-gradient(135deg, var(--deep-navy) 0%, #2a4a6a 100%);
+    color: var(--white);
+    padding: 48px 24px;
+    text-align: center;
+    margin-bottom: 24px;
+    border-radius: 0 0 12px 12px;
+  }
+  
+  .hero-content {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .hero h1 {
+    font-size: 2.5rem;
+    color: var(--white);
+    margin-bottom: 16px;
+  }
+  
+  .hero p {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    margin-bottom: 24px;
+  }
+  
+  .btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-primary {
+    background: var(--soft-gold);
+    color: var(--deep-navy);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(201, 169, 98, 0.4);
+  }
+  
+  .episode-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+  }
+  
+  .episode-thumbnail {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    background: linear-gradient(135deg, var(--muted-teal) 0%, #6ab0b0 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+  }
+  
+  .episode-content {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .episode-content h2 {
+    font-size: 1.1rem;
+    margin: 8px 0;
+    line-height: 1.4;
+  }
+  
+  .episode-content h2 a {
+    color: var(--deep-navy);
+    text-decoration: none;
+  }
+  
+  .episode-content h2 a:hover {
+    color: var(--muted-teal);
+  }
+  
+  .episode-date {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin: 0;
+  }
+  
+  .episode-level {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 480px) {
+    .hero h1 {
+      font-size: 1.75rem;
+    }
+    
+    .hero p {
+      font-size: 1rem;
+    }
+    
+    .episode-thumbnail {
+      width: 48px;
+      height: 48px;
+      min-width: 48px;
+      font-size: 1.25rem;
+    }
+  }
+</style>
 
 <script is:inline>
   const list = document.getElementById("episodeList");
@@ -110,7 +245,7 @@ const episodes = episodeFiles
       Math.max(min, Math.min(max, Number(value || 0)));
 
     const popularityScore = (card) => {
-      const rating = getSavedRating(card.episodeId); // 0..5
+      const rating = getSavedRating(card.episodeId);
       const behavior = getBehavior(card.episodeId);
       const opens = bounded(behavior.opens, 0, 1000);
       const completions = bounded(behavior.completions, 0, 1000);
@@ -123,10 +258,9 @@ const episodes = episodeFiles
       const activeSeconds = bounded(behavior.activeSeconds, 0, 1e7);
       const ageMs = Math.max(0, Date.now() - getDateValue(card.date));
       const ageDays = ageMs / (1000 * 60 * 60 * 24);
-      const freshness = Math.max(0, 21 - ageDays) * 0.4; // up to +8.4
+      const freshness = Math.max(0, 21 - ageDays) * 0.4;
 
-      // Weighted signal mix: rating + meaningful behavior.
-      const ratingScore = rating * 18; // up to 90
+      const ratingScore = rating * 18;
       const completionScore = Math.min(20, completions * 6);
       const flashcardScore = Math.min(16, flashcardAdds * 1.6);
       const vocabScore = Math.min(18, vocabStarts * 2 + vocabCompletes * 3);
