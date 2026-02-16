@@ -1,12 +1,25 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap');
+
 :root {
-  --primary-blue: #2563eb;
-  --success-green: #16a34a;
-  --error-red: #dc2626;
-  --warm-bg: #fafaf5;
-  --text-dark: #1f2937;
-  --text-light: #6b7280;
+  /* New Color Palette - Premium but Non-distracting */
+  --deep-navy: #1a2f4a;
+  --warm-cream: #f8f5f0;
+  --soft-gold: #c9a962;
+  --muted-teal: #4a8b8b;
+  --charcoal: #2d2d2d;
+  --slate-gray: #6b7280;
+  --white: #ffffff;
+  
+  /* Mapped to new colors */
+  --primary-blue: var(--deep-navy);
+  --success-green: #2e7d32;
+  --error-red: #c62828;
+  --warm-bg: var(--warm-cream);
+  --text-dark: var(--charcoal);
+  --text-light: var(--slate-gray);
   --border-light: #e5e7eb;
-  --card-bg: #ffffff;
+  --card-bg: var(--white);
 }
 
 *,
@@ -22,22 +35,28 @@ body {
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, sans-serif;
+  font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 18px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--text-dark);
   background: var(--warm-bg);
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  color: var(--deep-navy);
+  line-height: 1.3;
+}
+
 a {
-  color: var(--primary-blue);
+  color: var(--muted-teal);
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 a:hover {
-  text-decoration: underline;
+  color: var(--deep-navy);
 }
 
 .container {
@@ -50,6 +69,7 @@ a:hover {
 .site-header {
   border-bottom: 1px solid var(--border-light);
   background: var(--card-bg);
+  box-shadow: 0 2px 8px rgba(26, 47, 74, 0.06);
 }
 
 .header-inner {
@@ -61,7 +81,8 @@ a:hover {
 }
 
 .brand-link {
-  color: var(--text-dark);
+  color: var(--deep-navy);
+  font-family: 'Playfair Display', Georgia, serif;
   font-size: 24px;
   font-weight: 700;
 }
@@ -72,8 +93,9 @@ a:hover {
 
 .brand-subtitle {
   margin: 4px 0 0;
-  color: var(--text-light);
+  color: var(--soft-gold);
   font-size: 14px;
+  font-weight: 600;
 }
 
 .assist-lang {
@@ -96,11 +118,12 @@ a:hover {
   padding: 6px 9px;
   cursor: pointer;
   white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
 .assist-lang-btn.is-active {
-  background: rgba(37, 99, 235, 0.12);
-  color: var(--primary-blue);
+  background: var(--deep-navy);
+  color: var(--white);
 }
 
 .page-content {
@@ -127,28 +150,27 @@ a:hover {
   background: var(--card-bg);
   border: 1px solid var(--border-light);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   padding: 16px;
   margin-bottom: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-h1,
-h2,
-h3 {
-  margin: 0 0 10px;
-  line-height: 1.3;
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
-  font-size: 28px;
+  font-size: 32px;
 }
 
 h2 {
-  font-size: 22px;
+  font-size: 24px;
 }
 
 h3 {
-  font-size: 18px;
+  font-size: 20px;
 }
 
 p {
@@ -158,7 +180,7 @@ p {
 .button {
   min-height: 44px;
   border-radius: 6px;
-  border: 1px solid var(--primary-blue);
+  border: 1px solid var(--deep-navy);
   padding: 10px 16px;
   font-size: 16px;
   font-weight: 600;
@@ -167,6 +189,7 @@ p {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  transition: all 0.2s ease;
 }
 
 .button:focus-visible,
@@ -174,18 +197,27 @@ p {
 .transcript-word:focus-visible,
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline: 3px solid rgba(26, 47, 74, 0.35);
   outline-offset: 2px;
 }
 
 .button-primary {
-  background: var(--primary-blue);
+  background: var(--deep-navy);
   color: #fff;
+}
+
+.button-primary:hover {
+  background: #2a4a6a;
+  transform: translateY(-1px);
 }
 
 .button-secondary {
   background: #fff;
-  color: var(--primary-blue);
+  color: var(--deep-navy);
+}
+
+.button-secondary:hover {
+  background: rgba(26, 47, 74, 0.05);
 }
 
 .button[disabled] {
@@ -200,8 +232,8 @@ a:focus-visible {
   font-size: 14px;
   font-weight: 600;
   padding: 4px 10px;
-  background: rgba(37, 99, 235, 0.12);
-  color: var(--primary-blue);
+  background: var(--warm-cream);
+  color: var(--muted-teal);
 }
 
 .muted {
@@ -212,6 +244,10 @@ a:focus-visible {
 .episode-list {
   display: grid;
   gap: 16px;
+}
+
+.episode-card {
+  cursor: pointer;
 }
 
 .episode-card h2 {
@@ -234,6 +270,7 @@ a:focus-visible {
   align-items: center;
   min-height: 44px;
   margin-bottom: 10px;
+  color: var(--muted-teal);
 }
 
 .episode-header h1 {
@@ -247,6 +284,11 @@ a:focus-visible {
 .audio-player {
   display: grid;
   gap: 10px;
+  background: var(--white);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 24px;
 }
 
 .audio-player audio {
@@ -290,18 +332,20 @@ a:focus-visible {
   border-radius: 8px;
   overflow: hidden;
   width: min(100%, 560px);
+  background: var(--white);
 }
 
 .transcript-mode-btn {
   border: none;
-  background: #fff;
+  background: transparent;
   color: var(--text-light);
   font-weight: 600;
   font-size: 13px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   cursor: pointer;
   text-align: center;
   white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
 .transcript-mode-btn + .transcript-mode-btn {
@@ -309,8 +353,8 @@ a:focus-visible {
 }
 
 .transcript-mode-btn.is-active {
-  background: rgba(37, 99, 235, 0.12);
-  color: var(--primary-blue);
+  background: var(--deep-navy);
+  color: var(--white);
 }
 
 .transcript-guided-start {
@@ -329,19 +373,21 @@ a:focus-visible {
 }
 
 .transcript-section {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .transcript-section-title {
-  font-size: 16px;
+  font-size: 14px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--text-light);
-  margin-bottom: 8px;
+  color: var(--muted-teal);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(74, 139, 139, 0.2);
 }
 
 .transcript-paragraph {
-  margin: 0 0 10px;
+  margin: 0 0 14px;
 }
 
 .transcript-hint {
@@ -353,25 +399,25 @@ a:focus-visible {
 
 /* Every word in transcript is tappable */
 .transcript-word {
-  background: none;
+  background: rgba(74, 139, 139, 0.08);
   border: none;
-  padding: 0;
+  padding: 1px 4px;
   margin: 0;
   font: inherit;
   color: inherit;
   cursor: pointer;
-  border-bottom: 1px dotted transparent;
-  transition: border-color 0.15s ease;
+  border-radius: 3px;
+  transition: all 0.15s ease;
 }
 
 .transcript-word:hover {
-  border-bottom-color: var(--text-light);
+  background: rgba(74, 139, 139, 0.2);
 }
 
 .transcript-root[data-mode="listen"] .transcript-word {
   cursor: text;
   pointer-events: none;
-  border-bottom-color: transparent;
+  background: transparent;
 }
 
 .transcript-root[data-mode="listen"] .inline-question-wrap,
@@ -393,11 +439,11 @@ a:focus-visible {
   bottom: 12px;
   transform: translateX(-50%);
   width: min(900px, calc(100vw - 32px));
-  background: #fff;
+  background: var(--white);
   border: 1px solid var(--border-light);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
-  padding: 8px 10px;
+  padding: 10px 14px;
   z-index: 50;
   display: grid;
   gap: 6px;
@@ -406,7 +452,7 @@ a:focus-visible {
 .transcript-guided-progress {
   font-size: 13px;
   font-weight: 700;
-  color: var(--primary-blue);
+  color: var(--muted-teal);
 }
 
 .transcript-guided-actions {
@@ -420,13 +466,19 @@ a:focus-visible {
 
 .transcript-guided-btn {
   border: 1px solid var(--border-light);
-  background: #fff;
+  background: var(--white);
   color: var(--text-dark);
   font-size: 13px;
   font-weight: 600;
   border-radius: 8px;
   padding: 7px 10px;
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.transcript-guided-btn:hover {
+  border-color: var(--muted-teal);
+  color: var(--muted-teal);
 }
 
 .transcript-guided-btn[disabled] {
@@ -454,7 +506,7 @@ a:focus-visible {
   padding: 5px 8px;
   font-size: 12px;
   color: var(--text-dark);
-  background: #fff;
+  background: var(--white);
 }
 
 .archive-toolbar {
@@ -470,19 +522,25 @@ a:focus-visible {
 
 .archive-sort-btn {
   border: 1px solid var(--border-light);
-  background: #fff;
+  background: var(--white);
   color: var(--text-dark);
   border-radius: 999px;
   padding: 8px 14px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.archive-sort-btn:hover {
+  border-color: var(--muted-teal);
 }
 
 .archive-sort-btn.is-active {
-  border-color: var(--primary-blue);
-  color: var(--primary-blue);
-  background: rgba(37, 99, 235, 0.08);
+  border-color: var(--deep-navy);
+  color: var(--deep-navy);
+  background: var(--deep-navy);
+  color: var(--white);
 }
 
 /* ── Vocab Popup (bottom sheet on mobile, dialog on desktop) ── */
@@ -497,7 +555,7 @@ a:focus-visible {
   left: 0;
   right: 0;
   z-index: 100;
-  background: #fff;
+  background: var(--white);
   border-radius: 16px 16px 0 0;
   padding: 12px 16px 20px;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
@@ -532,6 +590,7 @@ a:focus-visible {
 
 .vocab-bottom-sheet h3 {
   margin-bottom: 4px;
+  color: var(--deep-navy);
 }
 
 .vocab-phonetic {
@@ -545,8 +604,8 @@ a:focus-visible {
   display: inline-block;
   font-size: 12px;
   font-weight: 600;
-  color: var(--primary-blue);
-  background: rgba(37, 99, 235, 0.08);
+  color: var(--muted-teal);
+  background: rgba(74, 139, 139, 0.12);
   border-radius: 4px;
   padding: 1px 6px;
   margin-bottom: 8px;
@@ -559,10 +618,10 @@ a:focus-visible {
 }
 
 .vocab-translation-box {
-  border: 1px solid rgba(37, 99, 235, 0.22);
-  background: rgba(37, 99, 235, 0.07);
+  border: 1px solid rgba(74, 139, 139, 0.3);
+  background: rgba(74, 139, 139, 0.08);
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   margin: 8px 0 6px;
   display: grid;
   gap: 4px;
@@ -575,7 +634,7 @@ a:focus-visible {
 }
 
 .vocab-translation-row strong {
-  color: var(--primary-blue);
+  color: var(--muted-teal);
 }
 
 /* Voice playback button (small, round) */
@@ -591,19 +650,19 @@ a:focus-visible {
   justify-content: center;
   cursor: pointer;
   font-size: 16px;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: all 0.15s ease;
   padding: 0;
   flex-shrink: 0;
 }
 
 .voice-btn:hover {
-  background: rgba(37, 99, 235, 0.06);
-  border-color: var(--primary-blue);
+  background: rgba(74, 139, 139, 0.1);
+  border-color: var(--muted-teal);
 }
 
 .voice-btn.is-speaking {
-  background: rgba(37, 99, 235, 0.12);
-  border-color: var(--primary-blue);
+  background: rgba(74, 139, 139, 0.15);
+  border-color: var(--muted-teal);
   animation: pulse-voice 1s ease-in-out infinite;
 }
 
@@ -632,12 +691,13 @@ a:focus-visible {
   position: relative;
   width: 100%;
   min-height: 260px;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid var(--border-light);
   transform-style: preserve-3d;
   transition: transform 0.45s ease;
-  background: #fff;
+  background: var(--white);
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .flashcard.is-flipped {
@@ -651,7 +711,7 @@ a:focus-visible {
   display: grid;
   align-content: center;
   justify-items: center;
-  padding: 18px;
+  padding: 24px;
   text-align: center;
 }
 
@@ -663,6 +723,7 @@ a:focus-visible {
   font-size: 32px;
   font-weight: 800;
   margin-bottom: 6px;
+  color: var(--deep-navy);
 }
 
 .flashcard-phonetic {
@@ -673,7 +734,7 @@ a:focus-visible {
 }
 
 .flashcard-definition {
-  font-size: 15px;
+  font-size: 16px;
   margin-bottom: 8px;
   color: var(--text-dark);
 }
@@ -687,8 +748,8 @@ a:focus-visible {
 
 .flashcard-context-box {
   width: 100%;
-  border: 1px solid rgba(37, 99, 235, 0.25);
-  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(74, 139, 139, 0.3);
+  background: rgba(74, 139, 139, 0.08);
   border-radius: 8px;
   padding: 10px 12px;
   margin-bottom: 10px;
@@ -701,7 +762,7 @@ a:focus-visible {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: var(--primary-blue);
+  color: var(--muted-teal);
   text-transform: uppercase;
 }
 
@@ -726,7 +787,7 @@ a:focus-visible {
 
 .flashcard-remove-btn:hover {
   opacity: 1;
-  background: rgba(220, 38, 38, 0.08);
+  background: rgba(198, 40, 40, 0.08);
 }
 
 .flashcard-empty {
@@ -765,16 +826,22 @@ a:focus-visible {
   min-height: 44px;
   border-radius: 999px;
   border: 1px solid var(--border-light);
-  background: #fff;
+  background: var(--white);
   color: var(--text-dark);
   padding: 8px 12px;
   font-size: 16px;
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chip:hover {
+  border-color: var(--muted-teal);
 }
 
 .chip.selected {
-  border-color: var(--primary-blue);
-  color: var(--primary-blue);
+  border-color: var(--deep-navy);
+  color: var(--deep-navy);
+  background: rgba(26, 47, 74, 0.05);
 }
 
 .feedback {
@@ -784,12 +851,12 @@ a:focus-visible {
 }
 
 .feedback.success {
-  background: rgba(22, 163, 74, 0.12);
+  background: rgba(46, 125, 50, 0.12);
   color: var(--success-green);
 }
 
 .feedback.error {
-  background: rgba(220, 38, 38, 0.12);
+  background: rgba(198, 40, 40, 0.12);
   color: var(--error-red);
 }
 
@@ -809,8 +876,8 @@ a:focus-visible {
 }
 
 .listen-again {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.04), rgba(22, 163, 74, 0.04));
-  border-color: var(--primary-blue);
+  background: linear-gradient(135deg, rgba(74, 139, 139, 0.06), rgba(46, 125, 50, 0.06));
+  border-color: var(--muted-teal);
 }
 
 .feedback-widget {
@@ -868,8 +935,8 @@ a:focus-visible {
 }
 
 .feedback-emoji.selected {
-  border-color: var(--primary-blue);
-  background: rgba(37, 99, 235, 0.08);
+  border-color: var(--deep-navy);
+  background: rgba(26, 47, 74, 0.08);
   transform: scale(1.08);
 }
 
@@ -880,8 +947,8 @@ a:focus-visible {
   font-size: 14px;
   font-weight: 700;
   padding: 4px 10px;
-  background: rgba(37, 99, 235, 0.1);
-  color: var(--primary-blue);
+  background: rgba(74, 139, 139, 0.15);
+  color: var(--muted-teal);
 }
 
 .feedback-edit-btn {
@@ -969,8 +1036,8 @@ a:focus-visible {
 .inline-question {
   display: flex;
   gap: 10px;
-  background: rgba(37, 99, 235, 0.04);
-  border-left: 3px solid var(--primary-blue);
+  background: rgba(74, 139, 139, 0.06);
+  border-left: 3px solid var(--muted-teal);
   border-radius: 0 8px 8px 0;
   padding: 12px 14px;
   margin: 14px 0;
@@ -981,8 +1048,8 @@ a:focus-visible {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--primary-blue);
-  color: #fff;
+  background: var(--muted-teal);
+  color: var(--white);
   font-weight: 700;
   font-size: 16px;
   display: flex;
@@ -1004,21 +1071,21 @@ a:focus-visible {
 
 .inline-question-reveal {
   background: none;
-  border: 1px dashed var(--primary-blue);
+  border: 1px dashed var(--muted-teal);
   border-radius: 6px;
   padding: 8px 14px;
   font-size: 14px;
-  color: var(--primary-blue);
+  color: var(--muted-teal);
   cursor: pointer;
   transition: background 0.15s ease;
 }
 
 .inline-question-reveal:hover {
-  background: rgba(37, 99, 235, 0.06);
+  background: rgba(74, 139, 139, 0.08);
 }
 
 .inline-question-answer {
-  background: rgba(22, 163, 74, 0.06);
+  background: rgba(46, 125, 50, 0.08);
   border-radius: 6px;
   padding: 10px 12px;
   animation: fade-in 0.2s ease-out;
