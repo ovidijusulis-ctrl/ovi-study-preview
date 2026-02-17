@@ -1,0 +1,47 @@
+{
+  "id": "ci-003-lost-in-city",
+  "slug": "ci-003-lost-in-city",
+  "date": "2026-02-17",
+  "level": "A2",
+  "topic": "Lost in the City - Asking for Directions",
+  "method": "Comprehensible Input (i+1)",
+  "summary": "Learn to ask for directions in English. Practical conversation for travelers.",
+  "category": "ci-lesson",
+  "tags": ["elementary", "directions", "ci", "a2", "travel"],
+  "source": {
+    "name": "Ovi English School",
+    "url": ""
+  },
+  "story": {
+    "text": "Tourist: Excuse me. Where is the train station?\nLocal: Go straight. Then turn left.\nTourist: Is it far?\nLocal: No, it's very close. Five minutes.\nTourist: Thank you!\nLocal: You're welcome!",
+    "context": "Very common traveler situation"
+  },
+  "key_phrases": [
+    {"phrase": "Excuse me", "meaning": "Polite way to get attention"},
+    {"phrase": "Where is...?", "meaning": "Asking for location"},
+    {"phrase": "Go straight", "meaning": "Direction"},
+    {"phrase": "Turn left/right", "meaning": "Direction"},
+    {"phrase": "You're welcome", "meaning": "Response to thank you"}
+  ],
+  "vocabulary": [
+    {"word": "tourist", "definition": "A person who visits for pleasure"},
+    {"word": "station", "definition": "A place where trains stop"},
+    {"word": "straight", "definition": "In a direct line"},
+    {"word": "close", "definition": "Not far away"},
+    {"word": "minutes", "definition": "A unit of time"}
+  ],
+  "questions": [
+    {
+      "question": "Where does the tourist want to go?",
+      "answer": "The train station"
+    },
+    {
+      "question": "How does the tourist get there?",
+      "answer": "Go straight, then turn left"
+    },
+    {
+      "question": "Is it far?",
+      "answer": "No, it's very close - five minutes"
+    }
+  ]
+}
