@@ -1,0 +1,50 @@
+{
+  "id": "ci-001-a-new-friend",
+  "slug": "ci-001-a-new-friend",
+  "date": "2026-02-17",
+  "level": "A1",
+  "topic": "A New Friend - Meeting Someone",
+  "method": "Comprehensible Input (i+1)",
+  "summary": "Learn to introduce yourself in English. Simple story about meeting a new friend from Japan-Lithuania bridge.",
+  "category": "ci-lesson",
+  "tags": ["beginner", "introduction", "ci", "a1"],
+  "source": {
+    "name": "Ovi English School",
+    "url": ""
+  },
+  "story": {
+    "text": "Hi! My name is Maria. I am from Japan. This is my friend, Tadas. He is from Lithuania. We are students. We study English together!",
+    "context": "Two friends meeting - very relatable, easy to understand"
+  },
+  "key_phrases": [
+    {"phrase": "My name is...", "meaning": "Introducing yourself"},
+    {"phrase": "I am from...", "meaning": "Saying where you're from"},
+    {"phrase": "This is my friend", "meaning": "Introducing someone"},
+    {"phrase": "We study...together", "meaning": "Doing something with someone"}
+  ],
+  "vocabulary": [
+    {"word": "friend", "definition": "A person you know well"},
+    {"word": "student", "definition": "Someone who learns at school"},
+    {"word": "together", "definition": "With someone"},
+    {"word": "Japan", "definition": "A country in Asia"},
+    {"word": "Lithuania", "definition": "A country in Europe"}
+  ],
+  "questions": [
+    {
+      "question": "What is Maria's name?",
+      "answer": "Maria"
+    },
+    {
+      "question": "Where is Maria from?",
+      "answer": "Japan"
+    },
+    {
+      "question": "Where is Tadas from?",
+      "answer": "Lithuania"
+    },
+    {
+      "question": "What do they study?",
+      "answer": "English"
+    }
+  ]
+}

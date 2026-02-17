@@ -1,0 +1,50 @@
+{
+  "id": "ci-002-at-the-cafe",
+  "slug": "ci-002-at-the-cafe",
+  "date": "2026-02-17",
+  "level": "A1-A2",
+  "topic": "At the Cafe - Ordering Coffee",
+  "method": "Comprehensible Input (i+1)",
+  "summary": "Learn to order at a cafe. Practical conversation with key phrases for everyday situations.",
+  "category": "ci-lesson",
+  "tags": ["elementary", "ordering", "ci", "a1", "practical"],
+  "source": {
+    "name": "Ovi English School",
+    "url": ""
+  },
+  "story": {
+    "text": "Barista: Can I help you?\nMaria: Yes, please. I want a coffee.\nBarista: Small, medium, or large?\nMaria: Medium, please.\nBarista: With milk?\nMaria: Yes, thank you.\nBarista: That will be 4 dollars.\nMaria: Here you go. Thank you!\nBarista: You're welcome!",
+    "context": "A very common, practical situation"
+  },
+  "key_phrases": [
+    {"phrase": "Can I help you?", "meaning": "How to start ordering"},
+    {"phrase": "Yes, please", "meaning": "Polite agreement"},
+    {"phrase": "That will be...", "meaning": "Telling the price"},
+    {"phrase": "Here you go", "meaning": "Giving money"},
+    {"phrase": "You're welcome", "meaning": "Response to thank you"}
+  ],
+  "vocabulary": [
+    {"word": "barista", "definition": "A person who makes coffee"},
+    {"word": "coffee", "definition": "A drink made from beans"},
+    {"word": "medium", "definition": "Middle size"},
+    {"word": "dollars", "definition": "Money (USD)"}
+  ],
+  "questions": [
+    {
+      "question": "What did Maria want to order?",
+      "answer": "A coffee"
+    },
+    {
+      "question": "What size did she order?",
+      "answer": "Medium"
+    },
+    {
+      "question": "Did she want milk?",
+      "answer": "Yes"
+    },
+    {
+      "question": "How much was it?",
+      "answer": "4 dollars"
+    }
+  ]
+}
