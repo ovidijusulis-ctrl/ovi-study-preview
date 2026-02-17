@@ -1,0 +1,51 @@
+{
+  "id": "ci-005-at-the-restaurant",
+  "slug": "ci-005-at-the-restaurant",
+  "date": "2026-02-17",
+  "level": "A1-A2",
+  "topic": "At the Restaurant - Ordering Food",
+  "method": "Comprehensible Input (i+1)",
+  "summary": "Learn to order food in English. Restaurant conversation.",
+  "category": "ci-lesson",
+  "tags": ["beginner", "restaurant", "ci", "a1", "food"],
+  "source": {
+    "name": "Ovi English School",
+    "url": ""
+  },
+  "story": {
+    "text": "Waiter: Good evening. A table for two?\nMaria: Yes, please.\nWaiter: Here are the menus. Are you ready to order?\nMaria: Yes. I would like the pasta, please.\nWaiter: And for you, sir?\nTadas: I will have the steak, please.\nWaiter: Would you like anything to drink?\nMaria: Water, please. And you, Tadas?\nTadas: I will have juice.\nWaiter: Perfect. Your food will be ready in twenty minutes.",
+    "context": "Common restaurant situation"
+  },
+  "key_phrases": [
+    {"phrase": "A table for...?", "meaning": "Asking how many people"},
+    {"phrase": "I would like...", "meaning": "Polite way to order"},
+    {"phrase": "And for you?", "meaning": "Taking second order"},
+    {"phrase": "Would you like anything to drink?", "meaning": "Asking about drinks"},
+    {"phrase": "Your food will be ready in...", "meaning": "Telling wait time"}
+  ],
+  "vocabulary": [
+    {"word": "waiter", "definition": "A person who serves food in a restaurant"},
+    {"word": "menu", "definition": "A list of food options"},
+    {"word": "pasta", "definition": "Italian food made from flour"},
+    {"word": "steak", "definition": "Fried meat"},
+    {"word": "drink", "definition": "Something to drink"}
+  ],
+  "questions": [
+    {
+      "question": "What did Maria order?",
+      "answer": "Pasta"
+    },
+    {
+      "question": "What did Tadas order?",
+      "answer": "Steak"
+    },
+    {
+      "question": "What did they drink?",
+      "answer": "Water and juice"
+    },
+    {
+      "question": "How long did they wait?",
+      "answer": "Twenty minutes"
+    }
+  ]
+}
