@@ -1,0 +1,46 @@
+{
+  "id": "ci-004-at-the-shop",
+  "slug": "ci-004-at-the-shop",
+  "date": "2026-02-17",
+  "level": "A1",
+  "topic": "At the Shop - Buying Things",
+  "method": "Comprehensible Input (i+1)",
+  "summary": "Learn to shop in English. Simple conversation about buying items.",
+  "category": "ci-lesson",
+  "tags": ["beginner", "shopping", "ci", "a1", "practical"],
+  "source": {
+    "name": "Ovi English School",
+    "url": ""
+  },
+  "story": {
+    "text": "Shopkeeper: Can I help you?\nMaria: Yes, how much is this shirt?\nShopkeeper: It is fifteen dollars.\nMaria: Do you have it in blue?\nShopkeeper: Let me check... Yes, we do!\nMaria: Great! I will take it.\nShopkeeper: That will be fifteen dollars, please.",
+    "context": "Common shopping situation"
+  },
+  "key_phrases": [
+    {"phrase": "How much is this?", "meaning": "Asking price"},
+    {"phrase": "Do you have it in...?", "meaning": "Asking for different color/size"},
+    {"phrase": "I will take it", "meaning": "Buying something"},
+    {"phrase": "That will be... please", "meaning": "Total price"}
+  ],
+  "vocabulary": [
+    {"word": "shopkeeper", "definition": "A person who sells things in a store"},
+    {"word": "shirt", "definition": "A piece of clothing for the upper body"},
+    {"word": "dollars", "definition": "Money"},
+    {"word": "blue", "definition": "A color"},
+    {"word": "take", "definition": "Buy (informal)"}
+  ],
+  "questions": [
+    {
+      "question": "What did Maria want to buy?",
+      "answer": "A shirt"
+    },
+    {
+      "question": "How much was the shirt?",
+      "answer": "Fifteen dollars"
+    },
+    {
+      "question": "What color did Maria want?",
+      "answer": "Blue"
+    }
+  ]
+}
