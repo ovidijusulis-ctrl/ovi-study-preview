@@ -57,14 +57,14 @@ const ldJson = {
   isPartOf: {
     "@type": "PodcastSeries",
     name: "Ovi English School",
-    url: "https://ovidijusulis-ctrl.github.io/ovi-study-site",
+    url: "https://ovidijusulis-ctrl.github.io/ovi-study-preview",
   },
   author: {
     "@type": "Organization",
     name: "Ovi English School",
-    url: "https://ovidijusulis-ctrl.github.io/ovi-study-site",
+    url: "https://ovidijusulis-ctrl.github.io/ovi-study-preview",
   },
-  url: `https://ovidijusulis-ctrl.github.io/ovi-study-site/episodes/${episode.slug || episode.date}`,
+  url: `https://ovidijusulis-ctrl.github.io/ovi-study-preview/episodes/${episode.slug || episode.date}`,
 };
 ---
 
@@ -151,7 +151,7 @@ const ldJson = {
         </li>
         <li>
           <a
-            href={`https://ovidijusulis-ctrl.github.io/ovi-study-site/episodes/${episode.slug || episode.date}`}
+            href={`https://ovidijusulis-ctrl.github.io/ovi-study-preview/episodes/${episode.slug || episode.date}`}
             onclick="if(navigator.share){event.preventDefault();navigator.share({title:document.title,url:window.location.href})}"
           >
             Share this lesson
